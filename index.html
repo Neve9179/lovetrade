@@ -30,6 +30,10 @@ html,body{background:#060608;color:var(--t1);font-family:'DM Mono',monospace;-we
 .rel-card{margin:0 20px 9px;background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:14px;cursor:pointer;transition:border-color .15s}
 .rel-card:active{border-color:var(--b2)}
 .rel-card.active{border-color:var(--g)}
+.rel-card.obs{border-style:dashed;border-color:rgba(155,93,229,.3)}
+.rel-card.obs.active{border-color:var(--pu)}
+.tag-obs{background:var(--pd);color:var(--pu);border:1px solid rgba(155,93,229,.25)}
+.grp-hd{font-size:9px;color:var(--t2);letter-spacing:2px;padding:0 20px;margin:14px 0 8px}
 .rc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 .rc-ticker{font-size:15px;font-weight:800;font-family:'Syne',sans-serif;letter-spacing:.5px}
 .rc-name{font-size:10px;color:var(--t2);margin-top:2px}
@@ -278,6 +282,7 @@ html,body{background:#060608;color:var(--t1);font-family:'DM Mono',monospace;-we
     <div class="stat"><div class="stat-l" data-en="VOLATILITY">波动率</div><div class="stat-v" id="dt-vol" style="color:var(--t2)">--</div></div>
     <div class="stat"><div class="stat-l" data-en="RETURN">收益率</div><div class="stat-v" id="dt-roi" style="color:var(--t2);font-size:12px">--</div></div>
   </div>
+  <div id="obs-banner" style="display:none;margin:12px 20px 0;background:var(--pd);border:1px solid rgba(155,93,229,.25);border-radius:14px;padding:11px 14px;font-size:11px;color:var(--pu);line-height:1.6"></div>
   <div id="pos-unset" style="display:none;margin:12px 20px 0;background:var(--yd);border:1px solid rgba(255,190,11,.25);border-radius:14px;padding:12px 14px">
     <div style="font-size:11px;color:var(--y);font-weight:600;margin-bottom:5px" data-en="⚠ Position needs calibration">⚠ 仓位需要校准</div>
     <div style="font-size:10px;color:var(--t2);line-height:1.6;margin-bottom:10px" id="pu-text"></div>
@@ -720,6 +725,8 @@ I18N.zh={
  rel_sub:'选择你与「{n}」的身份',
  lock_hint:'🔒 请先开仓锁定你自己的判断，再邀请亲友预测',
  ph_5:'5% 试探仓',ph_100:'100% 全仓',ph_bal:'{n}% 余额',
+ owner_only:'只有当事人可以操作仓位',obs_banner:'👀 你正在观察 <b>{n}</b> 的关系 — 可以预测，不能操作仓位',
+ obs_tag:'观察中',mine_tag:'我的',grp_mine:'我的持仓',grp_obs:'我在观察',btn_predict:'去预测市场 →',
  pf_none:'还没有任何情感持仓',side_a:'A方',side_b:'B方',shared_from:'来自分享',hold_curpos:'当前仓位',dt_tkpos:'  ·  仓位 {n}%',bet_long_t:'📈 做多',bet_short_t:'📉 做空',
  bet_long_s:'看好这段感情，感情结束则损失本金',bet_short_s:'不看好这段感情，感情结束则获得收益',
  bar_long:'做多 {n}%',bar_short:'做空 {n}%',qr_role_fb:'参与者',
@@ -825,6 +832,8 @@ I18N.en={
  rel_sub:'Choose your role in "{n}"',
  lock_hint:'🔒 Open a position first to lock in your own view, then invite others',
  ph_5:'5% probe',ph_100:'100% full',ph_bal:'{n}% of balance',
+ owner_only:'Only the person in the relationship can manage the position',obs_banner:'👀 You are observing <b>{n}</b> — you can predict, but not manage the position',
+ obs_tag:'Observing',mine_tag:'Mine',grp_mine:'MY POSITIONS',grp_obs:'OBSERVING',btn_predict:'Go to market →',
  pf_none:'No positions yet',side_a:'Side A',side_b:'Side B',shared_from:'shared',hold_curpos:'Current position',dt_tkpos:'  ·  {n}% position',bet_long_t:'📈 Long',bet_short_t:'📉 Short',
  bet_long_s:'Bullish — you lose your stake if it ends',bet_short_s:'Bearish — you profit if it ends',
  bar_long:'Long {n}%',bar_short:'Short {n}%',qr_role_fb:'Participant',
@@ -946,7 +955,8 @@ function tc(el){el.classList.toggle('on')}
 var mos=document.querySelectorAll('.mo');for(var i=0;i<mos.length;i++)mos[i].addEventListener('click',function(e){if(e.target===this)this.classList.remove('show')});
 
 function goTab(t){
-  if((t==='dt'||t==='an'||t==='pd')&&!cur()){tst(t('ts_pickrel'));t='pf'}
+  if((t==='dt'||t==='an'||t==='pd')&&!cur()){tst(window.t('ts_pickrel'));t='pf'}
+  if(t==='an'&&cur()&&cur().joined){tst(window.t('owner_only'));t='pd'}
   var s=document.querySelectorAll('.screen');for(var i=0;i<s.length;i++)s[i].classList.remove('on');
   var b=document.querySelectorAll('.tab');for(var j=0;j<b.length;j++)b[j].classList.remove('on');
   $('s-'+t).classList.add('on');$('t-'+t).classList.add('on');$('scroll').scrollTop=0;
@@ -958,26 +968,42 @@ function goTab(t){
 function goSub(n,el){var s=document.querySelectorAll('.snav');for(var i=0;i<s.length;i++)s[i].classList.remove('on');var p=document.querySelectorAll('.sub');for(var j=0;j<p.length;j++)p[j].classList.remove('on');el.classList.add('on');$('sub-'+n).classList.add('on')}
 
 /* ═══ PORTFOLIO ═══ */
+function relCard(r){
+  var sc=r.result?(r.status==='closed'?0:r.result.score):null;
+  var col=sc===null?'var(--t2)':sc<28?'#ff4d6d':sc<45?'#ffbe0b':'#00d68f';
+  var np=r.positions?r.positions.length:0;
+  var tag,posTag='',vd;
+  if(r.joined){
+    tag='<span class="rc-tag tag-obs">'+t('obs_tag')+'</span>';
+    vd=sc===null?'--':t('obs_tag');
+  }else{
+    tag=r.status==='open'?'<span class="rc-tag tag-open">'+t('rc_open')+'</span>':r.status==='closed'?'<span class="rc-tag tag-closed">'+t('rc_closed')+'</span>':'<span class="rc-tag tag-none">'+t('rc_none')+'</span>';
+    vd=r.status==='closed'?t('rc_closed'):r.result?r.result.verdict:t('rc_pending');
+    posTag=r.status==='open'?'<span style="color:var(--g)">'+t('rc_pos',{n:(r.position||0)})+'</span> · ':'';
+  }
+  return '<div class="rel-card'+(r.id===DB.active?' active':'')+(r.joined?' obs':'')+'" onclick="pickRel(\''+r.id+'\')">'+
+    '<div class="rc-top"><div><div class="rc-ticker">$'+r.ticker+'</div><div class="rc-name">'+r.name+' · '+r.nameA+' & '+r.nameB+'</div></div>'+
+    '<div><div class="rc-score" style="color:'+col+'">'+(sc===null?'--':sc)+'</div><div class="rc-verdict" style="color:'+col+'">'+vd+'</div></div></div>'+
+    '<div class="rc-bot">'+tag+'<span>'+posTag+t('rc_bets',{n:np})+'</span></div></div>';
+}
 function renderPF(){
-  var scored=[];for(var i=0;i<DB.rels.length;i++)if(DB.rels[i].result)scored.push(DB.rels[i].status==='closed'?0:DB.rels[i].result.score);
+  var mine=[],obs=[];
+  for(var i=0;i<DB.rels.length;i++){(DB.rels[i].joined?obs:mine).push(DB.rels[i])}
+  var scored=[];for(var j=0;j<mine.length;j++)if(mine[j].result)scored.push(mine[j].status==='closed'?0:mine[j].result.score);
   var avg=scored.length?Math.round(scored.reduce(function(a,b){return a+b},0)/scored.length):null;
   $('pf-avg').textContent=avg===null?'--':avg;
   $('pf-avg').style.color=avg===null?'var(--t1)':avg<28?'var(--r)':avg<45?'var(--y)':'var(--g)';
-  $('pf-sub').textContent=DB.rels.length?t('pf_sub',{n:DB.rels.length,m:scored.length,c:DB.coins.toLocaleString()}):t('pf_none');
+  $('pf-sub').textContent=DB.rels.length?t('pf_sub',{n:mine.length,m:scored.length,c:DB.coins.toLocaleString()}):t('pf_none');
   var L=$('rel-list');
   if(!DB.rels.length){L.innerHTML='<div class="empty-pf"><div style="font-size:30px;margin-bottom:10px">💼</div><div style="font-size:13px;font-weight:700;font-family:Syne,sans-serif;margin-bottom:5px">'+t('pf_empty_t')+'</div><div style="font-size:11px;line-height:1.6">'+t('pf_empty_s')+'</div></div>';return}
   var h='';
-  for(var k=0;k<DB.rels.length;k++){
-    var r=DB.rels[k],sc=r.result?(r.status==='closed'?0:r.result.score):null;
-    var col=sc===null?'var(--t2)':sc<28?'#ff4d6d':sc<45?'#ffbe0b':'#00d68f';
-    var vd=r.status==='closed'?t('rc_closed'):r.result?r.result.verdict:t('rc_pending');
-    var tag=r.status==='open'?'<span class="rc-tag tag-open">'+t('rc_open')+'</span>':r.status==='closed'?'<span class="rc-tag tag-closed">'+t('rc_closed')+'</span>':'<span class="rc-tag tag-none">'+t('rc_none')+'</span>';
-    var np=r.positions?r.positions.length:0;
-    var posTag=r.status==='open'?'<span style="color:var(--g)">'+t('rc_pos',{n:(r.position||0)})+'</span> · ':'';
-    h+='<div class="rel-card'+(r.id===DB.active?' active':'')+'" onclick="pickRel(\''+r.id+'\')">'+
-      '<div class="rc-top"><div><div class="rc-ticker">$'+r.ticker+'</div><div class="rc-name">'+r.name+' · '+r.nameA+' & '+r.nameB+'</div></div>'+
-      '<div><div class="rc-score" style="color:'+col+'">'+(sc===null?'--':sc)+'</div><div class="rc-verdict" style="color:'+col+'">'+vd+'</div></div></div>'+
-      '<div class="rc-bot">'+tag+'<span>'+posTag+t('rc_bets',{n:np})+'</span></div></div>';
+  if(mine.length){
+    if(obs.length)h+='<div class="grp-hd">'+t('grp_mine')+'</div>';
+    for(var k=0;k<mine.length;k++)h+=relCard(mine[k]);
+  }
+  if(obs.length){
+    h+='<div class="grp-hd">'+t('grp_obs')+'</div>';
+    for(var m=0;m<obs.length;m++)h+=relCard(obs[m]);
   }
   L.innerHTML=h;
 }
@@ -1001,7 +1027,7 @@ function joinByCode(){
   for(var i=0;i<DB.rels.length;i++)if(DB.rels[i].ticker===c){DB.active=DB.rels[i].id;save();closeMo('join');tst(t('ts_switched',{n:c}));goTab('dt');return}
   var r={id:uid(),ticker:c,name:'$'+c,nameA:t('side_a'),nameB:t('side_b'),created:Date.now(),assessment:null,result:null,positions:[],status:'none',joined:true};
   DB.rels.push(r);DB.active=r.id;save();$('jn-code').value='';
-  closeMo('join');tst(t('ts_joined',{n:c}));goTab('pd');
+  closeMo('join');tst(t('ts_joined',{n:c}));goTab('dt');
 }
 /* URL join */
 (function(){
@@ -1071,12 +1097,16 @@ function renderDT(){
       (cuts>=3?'<div style="margin-top:8px;padding:8px 10px;background:var(--yd);border:1px solid rgba(255,190,11,.2);border-radius:8px;font-size:10px;color:var(--y);line-height:1.6">'+t('hold_cutwarn',{n:cuts})+'</div>':'')+
       divergenceNote(r,pos);
   }else hs.style.display='none';
+  var ob=$('obs-banner');
+  if(r.joined){ob.style.display='block';ob.innerHTML=t('obs_banner',{n:'$'+r.ticker})}
+  else ob.style.display='none';
   var pu=$('pos-unset');
-  if(r.status==='open'&&r.posUnset){pu.style.display='block';$('pu-text').innerHTML=t('pu_text',{n:(r.position||50)})}
+  if(!r.joined&&r.status==='open'&&r.posUnset){pu.style.display='block';$('pu-text').innerHTML=t('pu_text',{n:(r.position||50)})}
   else pu.style.display='none';
   renderInsider(r,ms);
   renderActions(r);
-  var canShare=r.status==='open';
+  var canShare=!r.joined&&r.status==='open';
+  $('share-bar').style.display=r.joined?'none':'block';
   $('sb-btn').style.display=canShare?'block':'none';
   $('share-lock').style.display=canShare?'none':'block';
   updBars(r);
@@ -1233,6 +1263,7 @@ function drawK(ctx,W,H,pts,color){
 /* ═══ OPEN / CLOSE ═══ */
 function doOpen(){
   var r=cur();if(!r)return;
+  if(r.joined){tst(t('owner_only'));return}
   if(r.status==='open'){tst(t('ts_isopen'));return}
   if(!r.result){tst(t('ts_needassess'));goTab('an');return}
   $('op-p').textContent=r.result.score;
@@ -1249,6 +1280,7 @@ function setOutlook(el){
 }
 function doCalib(){
   var r=cur();if(!r)return;
+  if(r.joined){tst(t('owner_only'));return}
   $('cb-sl').value=r.position||50;updCalib();openMo('calib');
 }
 function updCalib(){
@@ -1291,6 +1323,7 @@ function confirmOpen(){
 }
 function doAdd(){
   var r=cur();if(!r||r.status!=='open')return;
+  if(r.joined){tst(t('owner_only'));return}
   var room=100-(r.position||0);
   if(room<=0){tst(t('ts_full'));return}
   var sl=$('ap-sl');sl.max=room;sl.value=Math.min(10,room);
@@ -1320,6 +1353,7 @@ function confirmAdd(){
 }
 function doCut(){
   var r=cur();if(!r||r.status!=='open')return;
+  if(r.joined){tst(t('owner_only'));return}
   var cp=r.position||0;
   if(cp<=0){tst(t('ts_nopos'));return}
   var sl=$('cp-sl');sl.max=cp;sl.value=Math.min(10,cp);
@@ -1365,6 +1399,7 @@ function confirmCut(){
 }
 function doClose(){
   var r=cur();if(!r)return;
+  if(r.joined){tst(t('owner_only'));return}
   if(r.status!=='open'){tst(t('ts_noopen'));return}
   $('cl-p').textContent=r.result?r.result.score:'--';openMo('close');
 }
@@ -1394,6 +1429,10 @@ function settlePositions(r){
 /* ═══ 动线 · 状态按钮 ═══ */
 function renderActions(r){
   var a=$('act-area'),h='';
+  if(r.joined){
+    a.innerHTML='<button class="btn-o" style="width:100%;background:var(--go);color:#000" onclick="goTab(\'pd\')">'+t('btn_predict')+'</button>';
+    return;
+  }
   if(!r.result){
     h='<button class="btn-c" style="width:100%" onclick="goTab(\'an\')">'+t('btn_assess')+'</button>';
   }else if(r.status==='closed'){
@@ -1818,6 +1857,7 @@ function labCard(R){
 }
 /* ═══ ENGINE ═══ */
 function renderAN(){var r=cur();$('an-ctx').textContent=r?'$'+r.ticker:'--'}
+function isObs(){var r=cur();return !!(r&&r.joined)}
 function gv(id){return $(id).value}
 function gc(id){var e=document.querySelectorAll('#'+id+' .chip.on'),o=[];for(var i=0;i<e.length;i++){var v=parseInt(e[i].getAttribute('data-s'));if(!isNaN(v))o.push(v)}return o}
 function gcT(id){var e=document.querySelectorAll('#'+id+' .chip.on'),o=[];for(var i=0;i<e.length;i++){var t=e[i].getAttribute('data-t');if(t)o.push(t)}return o}
@@ -1916,6 +1956,7 @@ function runEngine(){
 }
 function startAn(){
   var r=cur();if(!r){tst(t('ts_createfirst'));goTab('pf');return}
+  if(r.joined){tst(t('owner_only'));goTab('pd');return}
   var ev=$('evt').value.trim(),ch=document.querySelectorAll('#pos-c .chip.on,#neg-c .chip.on,#hard-c .chip.on').length;
   if(!ev&&!ch){$('evt').focus();tst(t('ts_needevent'));return}
   $('a-form').style.display='none';$('a-an').style.display='block';$('scroll').scrollTop=0;
