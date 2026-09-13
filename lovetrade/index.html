@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#060608">
+<title>LoveTrade</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell">
+<div class="sbar"><span id="clk" style="font-family:'Syne',sans-serif;font-weight:500"></span><button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button></div>
+<div class="scroll" id="scroll">
+
+<!-- PORTFOLIO -->
+<div class="screen on" id="s-pf">
+  <div class="nav"><div class="nav-t" style="color:var(--g)">LoveTrade</div><div class="badge"><div class="dot"></div>LIVE</div></div>
+  <div class="pf-hdr">
+    <div class="pf-total-l" data-en="Portfolio Overview">情感持仓总览</div>
+    <div class="pf-total" id="pf-avg" style="color:var(--t1)">--</div>
+    <div class="pf-sub" id="pf-sub" data-en="No positions yet">还没有任何情感持仓</div>
+  </div>
+  <div id="rel-list"></div>
+  <div class="add-rel" onclick="openMo('newrel')" data-en="+ &nbsp;New Relationship">+ &nbsp;新建关系资产</div>
+  <div style="text-align:center;margin-top:10px"><span class="ghost-btn" onclick="openMo('join')" data-en="Enter a ticker to predict">输入代号预测他人的关系</span></div>
+  <div style="text-align:center;margin-top:14px"><span style="font-size:9px;color:var(--t3);cursor:pointer" onclick="hardReset()" data-en="Data broken? Clear all local data">数据异常？点此清空全部本地数据</span></div>
+  <div style="height:10px"></div>
+</div>
+
+<!-- DETAIL -->
+<div class="screen" id="s-dt">
+  <div class="nav"><div class="nav-t" id="dt-title">--</div><span class="ghost-btn" onclick="goTab('pf')" data-en="← Portfolio">← 返回持仓</span></div>
+  <div class="price-hero">
+    <div class="ph-tk" id="dt-tk">--</div>
+    <div class="price-lbl" data-en="Relationship Health Index">关系健康指数</div>
+    <div class="price-main" id="dt-price" style="color:var(--t1)">--</div>
+    <div id="dt-chg" style="font-size:12px;color:var(--t2);margin-top:3px" data-en="Not assessed">尚未评估</div>
+  </div>
+  <div id="dt-nochart" class="no-chart" data-en-html="Chart<br>Once assessed or once someone predicts<br>the price curve appears here">K 线图<br>完成评估或有人参与预测后<br>价格曲线将在此显示</div>
+  <div id="dt-chartwrap" style="display:none;margin:12px 20px 0"><canvas id="dt-canvas" style="width:100%;height:150px;display:block"></canvas><div id="dt-chart-cap" style="font-size:9px;color:var(--t3);margin-top:5px;text-align:center"></div></div>
+  <div id="act-area" style="padding:14px 20px 0"></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-l" data-en="PARITY">认知对等</div><div class="stat-v" id="dt-pe" style="color:var(--t2)">--</div></div>
+    <div class="stat"><div class="stat-l" data-en="FIN SYNC">财务协同</div><div class="stat-v" id="dt-cf" style="color:var(--t2)">--</div></div>
+    <div class="stat"><div class="stat-l" data-en="VOLATILITY">波动率</div><div class="stat-v" id="dt-vol" style="color:var(--t2)">--</div></div>
+    <div class="stat"><div class="stat-l" data-en="RETURN">收益率</div><div class="stat-v" id="dt-roi" style="color:var(--t2);font-size:12px">--</div></div>
+  </div>
+  <div id="obs-banner" style="display:none;margin:12px 20px 0;background:var(--pd);border:1px solid rgba(155,93,229,.25);border-radius:14px;padding:11px 14px;font-size:11px;color:var(--pu);line-height:1.6"></div>
+  <div id="pos-unset" style="display:none;margin:12px 20px 0;background:var(--yd);border:1px solid rgba(255,190,11,.25);border-radius:14px;padding:12px 14px">
+    <div style="font-size:11px;color:var(--y);font-weight:600;margin-bottom:5px" data-en="⚠ Position needs calibration">⚠ 仓位需要校准</div>
+    <div style="font-size:10px;color:var(--t2);line-height:1.6;margin-bottom:10px" id="pu-text"></div>
+    <button style="width:100%;padding:9px;border-radius:50px;background:var(--y);color:#000;font-size:11px;font-weight:700;border:none;cursor:pointer;font-family:Syne,sans-serif" onclick="doCalib()" data-en="Set actual position">设置真实仓位</button>
+  </div>
+  <div id="insider-feed" style="display:none;margin:12px 20px 0;background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:12px 14px"></div>
+  <div id="hold-stats" style="display:none;margin:12px 20px 0;background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:12px 14px"></div>
+  <div class="share-bar" id="share-bar">
+    <div class="sb-t" data-en="🎫 TICKER — SHARE TO INVITE PREDICTIONS">🎫 关系代号 — 分享给朋友参与预测</div>
+    <div class="sb-code" id="dt-code">--</div>
+    <button class="sb-btn" id="sb-btn" onclick="openShare()" data-en="Generate invite link">生成邀请链接</button>
+    <div id="share-lock" style="display:none;font-size:10px;color:var(--t2);line-height:1.6;margin-top:8px;text-align:center" data-en="🔒 Open a position first to lock in your own view, then invite others">🔒 请先开仓锁定你自己的判断，再邀请亲友预测</div>
+  </div>
+  <div class="pred-strip">
+    <div class="pred-ttl"><span style="color:var(--t2);letter-spacing:2px" data-en="PREDICTION MARKET">预测市场</span><span onclick="goTab('pd')" data-en="Join market →">参与预测 →</span></div>
+    <div class="pred-bars"><div class="pb-l" id="dt-bl" style="width:50%">Long 50%</div><div class="pb-s" id="dt-bs" style="width:50%">Short 50%</div></div>
+    <div class="pred-meta"><span data-en-html="Total <b id='dt-tc'>0</b> coins">总投注 <b id="dt-tc">0</b> 硬币</span><span data-en-html="Players <b id='dt-pc'>0</b>">参与者 <b id="dt-pc">0</b> 人</span></div>
+    <div id="dt-plist"></div>
+  </div>
+  <div style="height:8px"></div>
+</div>
+
+<!-- ANALYST -->
+<div class="screen" id="s-an">
+  <div class="nav"><div class="nav-t" data-en="Analyst">分析师</div><span class="ghost-btn" id="an-ctx">--</span></div>
+  <div class="sub-nav"><button class="snav on" onclick="goSub('as',this)" data-en="Assess">评估</button><button class="snav" onclick="goSub('rp',this)" data-en="Report">报告</button></div>
+  <div class="sub on" id="sub-as">
+    <div id="a-form"><div class="fb">
+      <div class="dv"><span data-en="YOUR PROFILE">你的画像</span></div>
+      <div class="fg"><label class="fl" data-en="MY LOVE LANGUAGE">我的爱语言</label><div class="sw"><select class="rsel" id="my-ll"><option value="words" data-en="Words of affirmation">肯定的言辞</option><option value="time" data-en="Quality time">精心的时刻</option><option value="gifts" data-en="Receiving gifts">接受礼物</option><option value="service" data-en="Acts of service">服务的行为</option><option value="touch" data-en="Physical touch">身体接触</option></select></div></div>
+      <div class="fg"><label class="fl" data-en="MY ATTACHMENT STYLE">我的依恋类型</label><div class="sw"><select class="rsel" id="my-at"><option value="secure" data-en="Secure">安全型</option><option value="anxious" data-en="Anxious">焦虑型</option><option value="avoidant" data-en="Avoidant">回避型</option><option value="fearful" data-en="Fearful">恐惧型</option></select></div></div>
+      <div class="fg"><label class="fl" data-en="THEIR LOVE LANGUAGE">对方的爱语言</label><div class="sw"><select class="rsel" id="th-ll"><option value="words" data-en="Words of affirmation">肯定的言辞</option><option value="time" data-en="Quality time">精心的时刻</option><option value="gifts" data-en="Receiving gifts">接受礼物</option><option value="service" data-en="Acts of service">服务的行为</option><option value="touch" data-en="Physical touch">身体接触</option></select></div></div>
+      <div class="fg"><label class="fl" data-en="THEIR PERSONALITY TYPE">对方的人格类型</label><div class="sw"><select class="rsel" id="th-pe"><option value="supportive" data-en="Supportive">支持型</option><option value="neutral" data-en="Neutral">中性型</option><option value="competitive" data-en="Competitive">竞争型</option><option value="controlling" data-en="Controlling">控制型</option><option value="avoidant_p" data-en="Avoidant">回避型</option><option value="volatile" data-en="Volatile">情绪不稳定型</option></select></div></div>
+      <div class="dv"><span data-en="RELATIONSHIP DATA">关系数据</span></div>
+      <div class="two">
+        <div class="fg"><label class="fl" data-en="DURATION">恋爱时长</label><div class="sw"><select class="rsel" id="dur"><option value="under3" data-en="Under 3 months">3个月以内</option><option value="3to6" data-en="3–6 months">3-6个月</option><option value="6to12" selected data-en="6–12 months">6-12个月</option><option value="1to2" data-en="1–2 years">1-2年</option><option value="2to3" data-en="2–3 years">2-3年</option><option value="over3" data-en="Over 3 years">3年以上</option></select></div></div>
+        <div class="fg"><label class="fl" data-en="GEOGRAPHY">地理位置</label><div class="sw"><select class="rsel" id="loc"><option value="together" data-en="Living together">同居</option><option value="samecity" selected data-en="Same city">同城</option><option value="longdist" data-en="Long distance (domestic)">同国异地</option><option value="intl" data-en="Long distance (intl)">异国</option></select></div></div>
+      </div>
+      <div class="fg"><label class="fl"><span data-en="COGNITIVE PARITY PE">认知对等性 PE</span> &nbsp;<em id="pe-v">60</em></label><input type="range" class="rsl" id="pe" min="0" max="100" value="60" oninput="document.getElementById('pe-v').textContent=this.value"></div>
+      <div class="fg"><label class="fl"><span data-en="FINANCIAL SYNC CF">财务协同度 CF</span> &nbsp;<em id="cf-v">55</em></label><input type="range" class="rsl" id="cf" min="0" max="100" value="55" oninput="document.getElementById('cf-v').textContent=this.value"></div>
+      <div class="fg"><label class="fl"><span data-en="A EMOTIONAL STABILITY">A方情绪稳定性</span> &nbsp;<em id="sta-v">60</em></label><input type="range" class="rsl" id="stabA" min="0" max="100" value="60" oninput="updStab()"></div>
+      <div class="fg"><label class="fl"><span data-en="B EMOTIONAL STABILITY">B方情绪稳定性</span> &nbsp;<em id="stb-v">60</em></label><input type="range" class="rsl" id="stabB" min="0" max="100" value="60" oninput="updStab()"></div>
+      <div class="fg" style="background:var(--s1);border:1px solid var(--b);border-radius:9px;padding:10px 12px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:10px;color:var(--t2)" data-en="Combined stability">综合稳定度</span>
+          <span id="stab-combined" style="font-size:16px;font-weight:800;font-family:Syne,sans-serif;color:var(--g)">60</span>
+        </div>
+        <div id="stab-gap" style="font-size:9px;color:var(--t3);margin-top:5px;line-height:1.5"></div>
+      </div>
+      <div class="fg"><label class="fl" data-en="BEHAVIORAL PATTERN">行为模式</label><div class="sw"><select class="rsel" id="pat"><option value="builder" data-en="Builder">建设者模式</option><option value="normal" selected data-en="Steady">普通模式</option><option value="drainer" data-en="Drainer">消耗者模式</option><option value="mixed" data-en="Mixed">混合模式</option></select></div></div>
+      <div class="fg"><label class="fl" data-en="RECENT TREND">近期走势</label><div class="sw"><select class="rsel" id="trend"><option value="bull" data-en="Heating up">持续升温</option><option value="sideways" selected data-en="Sideways">震荡横盘</option><option value="bear" data-en="Cooling slowly">缓慢冷却</option><option value="crash" data-en="Crashing">急速冷却</option></select></div></div>
+      <div class="dv"><span data-en="RECENT EVENTS">近期事件</span></div>
+      <div class="fg"><label class="fl" data-en="POSITIVE EVENTS (MULTI)">正面事件（可多选）</label><div class="chips" id="pos-c">
+        <div class="chip" data-s="20" onclick="tc(this)" data-en="Shared milestone">共同里程碑</div><div class="chip" data-s="18" onclick="tc(this)" data-en="Gave up other options for me">为我放弃其他选择</div><div class="chip" data-s="16" onclick="tc(this)" data-en="Actively planned our future">主动规划共同未来</div><div class="chip" data-s="15" onclick="tc(this)" data-en="Deep effective communication">深度有效沟通</div><div class="chip" data-s="15" onclick="tc(this)" data-en="Kept a promise">兑现了承诺</div><div class="chip" data-s="14" onclick="tc(this)" data-en="Full support in my low moments">低谷时全力支持</div><div class="chip" data-s="13" onclick="tc(this)" data-en="Owned a mistake">主动承认错误</div><div class="chip" data-s="12" onclick="tc(this)" data-en="Genuine reconciliation">真诚和解</div><div class="chip" data-s="12" onclick="tc(this)" data-en="Introduced to important people">介绍给重要的人</div><div class="chip" data-s="11" onclick="tc(this)" data-en="Public affection">公开场合表达爱意</div><div class="chip" data-s="10" onclick="tc(this)" data-en="Proactive care">主动关心照顾</div><div class="chip" data-s="10" onclick="tc(this)" data-en="Increased physical intimacy">身体亲密度提升</div><div class="chip" data-s="9" onclick="tc(this)" data-en="Remembered small details">记得我的小细节</div><div class="chip" data-s="8" onclick="tc(this)" data-en="Thoughtful surprise">用心的惊喜</div><div class="chip" data-s="7" onclick="tc(this)" data-en="Maintains daily contact">主动维持联系</div>
+      </div></div>
+      <div class="fg"><label class="fl" data-en="NEGATIVE EVENTS (MULTI)">负面事件（可多选）</label><div class="chips" id="neg-c">
+        <div class="chip d" data-s="-25" onclick="tc(this)" data-en="Third party involved">第三方介入</div><div class="chip d" data-s="-22" onclick="tc(this)" data-en="Value conflict">价值观冲突</div><div class="chip d" data-s="-20" onclick="tc(this)" data-en="Money dispute">涉及钱的争议</div><div class="chip d" data-s="-18" onclick="tc(this)" data-en="Emotional outburst">情绪失控爆发</div><div class="chip d" data-s="-17" onclick="tc(this)" data-en="Clash over future plans">未来计划意见相左</div><div class="chip d" data-s="-16" onclick="tc(this)" data-en="Caught them lying">发现对方说谎</div><div class="chip d" data-s="-15" onclick="tc(this)" data-en="Silent treatment">冷战/不回消息</div><div class="chip d" data-s="-14" onclick="tc(this)" data-en="Belittled in front of others">在他人前被贬低</div><div class="chip d" data-s="-13" onclick="tc(this)" data-en="Promises repeatedly broken">承诺反复被违背</div><div class="chip d" data-s="-12" onclick="tc(this)" data-en="Felt ignored">感到被忽视</div><div class="chip d" data-s="-10" onclick="tc(this)" data-en="Ordinary argument">普通争吵</div><div class="chip d" data-s="-9" onclick="tc(this)" data-en="Dredging up the past">翻旧账</div><div class="chip d" data-s="-8" onclick="tc(this)" data-en="Going through the motions">敷衍缺乏用心</div><div class="chip d" data-s="-7" onclick="tc(this)" data-en="Forgot an important date">重要日子被忘记</div><div class="chip d" data-s="-6" onclick="tc(this)" data-en="Hiding it on social media">社交媒体上的隐瞒</div>
+      </div></div>
+      <div class="dv"><span data-en="EMOTIONAL LABOR">情感劳动分布</span></div>
+      <div style="font-size:10px;color:var(--t2);line-height:1.6;margin-bottom:10px" data-en="For each item, choose who usually does it. This is not a score — it is an inventory.">逐项选择这件事通常是谁在做。这不是打分，是一份清单。</div>
+      <div id="labor-mod"></div>
+      <div id="labor-result" style="display:none;background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:12px;margin-bottom:12px"></div>
+      <div class="dv"><span data-en="RISK FACTORS">风险因子</span></div>
+      <div class="fg"><label class="fl" data-en="HARD STOP-LOSS TRIGGERS">硬性止损触发器</label><div class="chips" id="hard-c">
+        <div class="chip d" data-s="-50" onclick="tc(this)" data-en="Physical violence / abuse">肢体暴力/家暴</div><div class="chip d" data-s="-45" onclick="tc(this)" data-en="Infidelity / repeated deceit">出轨/反复欺骗</div><div class="chip d" data-s="-40" onclick="tc(this)" data-en="Narcissistic / manipulative">自恋/操控型人格</div><div class="chip d" data-s="-35" onclick="tc(this)" data-en="Deliberately hid key information">蓄意隐瞒重要信息</div>
+      </div></div>
+      <div class="fg"><label class="fl" data-en="SOFT RISK FACTORS">软性风险因子</label><div class="chips" id="soft-c">
+        <div class="chip" data-s="-8" onclick="tc(this)" data-en="Unequal emotional labor">情感劳动不平等</div><div class="chip" data-s="-8" onclick="tc(this)" data-en="Unprocessed family trauma">原生家庭创伤</div><div class="chip" data-s="-7" onclick="tc(this)" data-en="Financial dependency imbalance">经济依赖不平衡</div><div class="chip" data-s="-7" onclick="tc(this)" data-en="Very different communication styles">沟通方式差异大</div><div class="chip" data-s="-6" onclick="tc(this)" data-en="Disagreement on marriage/children">对婚育的分歧</div><div class="chip" data-s="-6" onclick="tc(this)" data-en="Unresolved ex">与前任未处理清楚</div><div class="chip" data-s="-6" onclick="tc(this)" data-en="Friends do not approve">朋友圈不支持</div><div class="chip" data-s="-5" onclick="tc(this)" data-en="Habit friction">习惯差异摩擦</div><div class="chip" data-s="-5" onclick="tc(this)" data-en="Sexual incompatibility">性生活不协调</div><div class="chip" data-s="-5" onclick="tc(this)" data-en="Religious difference">宗教/信仰差异</div><div class="chip" data-s="-4" onclick="tc(this)" data-en="Large cultural gap">文化背景差异大</div><div class="chip" data-s="-4" onclick="tc(this)" data-en="Age-gap power imbalance">年龄差距权力落差</div><div class="chip" data-s="-4" onclick="tc(this)" data-en="Unaddressed mental health issue">心理健康问题未解决</div><div class="chip" data-s="-3" onclick="tc(this)" data-en="No overlapping social circles">社交圈不重叠</div><div class="chip" data-s="-3" onclick="tc(this)" data-en="Different needs for space">个人空间需求差异</div>
+      </div></div>
+      <div class="dv"><span data-en="STRUCTURAL RISK · LAYER 5">结构性风险 · LAYER 5</span></div>
+      <div class="fg"><label class="fl" data-en="IDENTITY & SOCIAL STRUCTURE">身份与社会结构因子</label><div class="chips" id="struct-c">
+        <div class="chip pu" data-t="lgbtq" onclick="tc(this)" data-en="LGBTQ+ relationship">LGBTQ+ 关系</div><div class="chip pu" data-t="wlw" onclick="tc(this)" data-en="WLW relationship">女同性恋（WLW）</div><div class="chip pu" data-t="trans" onclick="tc(this)" data-en="Trans / non-binary">跨性别/非二元</div><div class="chip pu" data-t="closeted" onclick="tc(this)" data-en="Not fully out">尚未完全出柜</div><div class="chip pu" data-t="family-pressure" onclick="tc(this)" data-en="Family rejection / marriage pressure">家庭不接受/逼婚</div><div class="chip pu" data-t="gender-labor" onclick="tc(this)" data-en="Gendered emotional labor imbalance">性别化情感劳动失衡</div><div class="chip pu" data-t="hostile-env" onclick="tc(this)" data-en="Hostile social environment">社会环境敌对</div><div class="chip pu" data-t="marry-pressure" onclick="tc(this)" data-en="Timeline pressure">婚育时间压力</div>
+      </div></div>
+      <div class="dv"><span data-en="MACRO ENVIRONMENT">宏观环境</span></div>
+      <div class="fg"><label class="fl" data-en="EXTERNAL PRESSURE">外部压力因子</label><div class="chips" id="macro-c">
+        <div class="chip d" data-s="-14" onclick="tc(this)" data-en="Deteriorating social climate">社会大环境恶化</div><div class="chip d" data-s="-12" onclick="tc(this)" data-en="Economic pressure">经济压力</div><div class="chip d" data-s="-10" onclick="tc(this)" data-en="Career pressure">工作/职业压力</div><div class="chip d" data-s="-8" onclick="tc(this)" data-en="Family crisis">家庭变故</div><div class="chip d" data-s="-6" onclick="tc(this)" data-en="Health issues">健康问题</div><div class="chip" data-s="10" onclick="tc(this)" data-en="Promotion / career progress">升职/事业进步</div><div class="chip" data-s="8" onclick="tc(this)" data-en="Improved finances">经济状况改善</div><div class="chip" data-s="6" onclick="tc(this)" data-en="Positive overall environment">整体环境积极</div>
+      </div></div>
+      <div class="fg"><label class="fl" data-en="KEY EVENT">关键事件描述</label><textarea class="rtx" id="evt" placeholder="简述让你最纠结的事..." data-en-ph="Briefly describe what troubles you most..."></textarea></div>
+      <button class="cta" onclick="startAn()" data-en="Run Assessment">开始评估</button>
+      <div style="height:8px"></div>
+    </div></div>
+    <div id="a-an" style="display:none"><div class="anw"><div class="spin"></div><div class="an-t" data-en="Analyzing...">分析中...</div><div class="an-s" data-en="Processing through the five-layer factor engine">正在通过五层因子系统处理数据</div><div class="prog" id="prog"></div></div></div>
+  </div>
+  <div class="sub" id="sub-rp"><div class="rb" id="rpt">
+    <div style="text-align:center;padding:40px 0;color:var(--t2)"><div style="font-size:28px;margin-bottom:10px">📊</div><div style="font-size:14px;font-weight:700;font-family:Syne,sans-serif;margin-bottom:5px" data-en="No report yet">暂无报告</div><div style="font-size:11px" data-en="Your report will appear here after assessment">完成评估后报告将出现在这里</div></div>
+  </div></div>
+</div>
+
+<!-- PREDICT -->
+<div class="screen" id="s-pd">
+  <div class="nav"><div class="nav-t" data-en="Market">预测市场</div><span class="ghost-btn" id="pd-ctx">--</span></div>
+  <div id="rec-card" style="display:none;margin:12px 20px 0;background:var(--s1);border:1px solid var(--b2);border-radius:14px;padding:12px 14px"></div>
+  <div class="cd">
+    <div style="display:flex;align-items:center;gap:9px"><div style="font-size:26px">🪙</div><div><div style="font-size:9px;color:var(--t2);letter-spacing:1.5px;margin-bottom:2px" data-en="MY COINS">我的硬币</div><div class="cam" id="coin">0</div></div></div>
+    <button class="cbtn" onclick="openMo('earn')" data-en="+ Earn coins">+ 赚取硬币</button>
+  </div>
+  <div id="earn-hint" style="font-size:9px;color:var(--t3);padding:6px 20px 0;line-height:1.5"></div>
+  <div id="pd-closed" style="display:none;margin:12px 20px 0;background:var(--rd);border:1px solid rgba(255,77,109,.25);border-radius:14px;padding:14px 16px;text-align:center">
+    <div style="font-size:22px;margin-bottom:6px">🔒</div>
+    <div style="font-size:13px;font-weight:700;font-family:Syne,sans-serif;color:var(--r);margin-bottom:4px" data-en="Market closed">市场已关闭</div>
+    <div style="font-size:11px;color:var(--t2);line-height:1.6" data-en-html="This relationship is closed. Index reset to zero.<br>Run a new assessment on the Analyst tab to reopen.">这段关系已平仓，指数归零。<br>如需重新开盘，请回到分析师页面重新评估。</div>
+  </div>
+  <div class="psec" id="pd-stance">
+    <div class="pst" data-en="TAKE A POSITION">选择立场</div>
+    <div class="sfc" id="self-card">
+      <div style="font-size:8px;color:var(--go);letter-spacing:2px;margin-bottom:7px" data-en="👑 IN THE RELATIONSHIP — SPEAK WITH POSITION">👑 当事人 — 用仓位说话</div>
+      <div style="font-size:11px;color:var(--t2);margin-bottom:9px;line-height:1.5" data-en="You are in this relationship, so you cannot bet. Your judgment is expressed by adding to or cutting your position — real behavior carries more weight than any prediction, and it moves the market price directly.">你在这段关系里，不能下注。你的判断通过加仓和减仓表达——那是真实的行为，比任何预测都有分量，而且会直接推动市场价格。</div>
+      <button style="width:100%;padding:11px;border-radius:50px;background:var(--god);border:1px solid rgba(244,196,48,.3);color:var(--go);font-size:12px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif" onclick="goTab('dt')" data-en="Manage position →">前往管理仓位 →</button>
+    </div>
+    <div class="pgr">
+      <div class="plg" onclick="openBet('long')"><div style="font-size:10px;font-weight:700;color:var(--g);margin-bottom:3px" data-en="📈 Long">📈 做多</div><div style="font-size:9px;color:var(--g);opacity:.7;line-height:1.4;margin-bottom:9px" data-en-html="Bullish on this<br>Lose your stake if it ends">看好这段感情<br>分手则损失本金</div><button style="width:100%;padding:7px;border-radius:20px;font-size:11px;font-weight:700;border:none;cursor:pointer;background:var(--g);color:#000;font-family:Syne,sans-serif" data-en="Go long">朋友做多</button></div>
+      <div class="psh" onclick="openBet('short')"><div style="font-size:10px;font-weight:700;color:var(--r);margin-bottom:3px" data-en="📉 Short">📉 做空</div><div style="font-size:9px;color:var(--r);opacity:.7;line-height:1.4;margin-bottom:9px" data-en-html="Bearish on this<br>Profit if it ends">不看好这段感情<br>分手则获得收益</div><button style="width:100%;padding:7px;border-radius:20px;font-size:11px;font-weight:700;border:none;cursor:pointer;background:var(--r);color:#fff;font-family:Syne,sans-serif" data-en="Go short">朋友做空</button></div>
+    </div>
+  </div>
+  <div class="mkt">
+    <div class="mkt-t" data-en="MARKET SENTIMENT">市场情绪</div>
+    <div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:4px"><span style="color:var(--g)" data-en-html="Long <b id='lp'>50</b>%">做多 <b id="lp">50</b>%</span><span style="color:var(--r)" data-en-html="Short <b id='sp'>50</b>%">做空 <b id="sp">50</b>%</span></div>
+    <div class="msb"><div class="msf" id="msf" style="width:50%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t2)"><span data-en-html="Committed <b style='color:var(--go)' id='tc2'>0</b> coins">总投入 <b style="color:var(--go)" id="tc2">0</b> 硬币</span><span data-en-html="Players <b style='color:var(--t1)' id='tp2'>0</b>">参与者 <b style="color:var(--t1)" id="tp2">0</b> 人</span></div>
+  </div>
+  <div class="pl"><div class="plt"><span data-en="ALL POSITIONS">所有持仓</span><span onclick="openShare()" data-en="Invite others">邀请朋友参与</span></div><div id="plb"><div style="text-align:center;padding:24px 0;color:var(--t3);font-size:11px" data-en="No positions yet — be the first">暂无持仓</div></div></div>
+  <div style="height:8px"></div>
+</div>
+
+</div>
+<div class="tb">
+  <div class="tab on" id="t-pf" onclick="goTab('pf')"><div class="tbi">💼</div><div class="tbl" data-en="Portfolio">持仓</div></div>
+  <div class="tab" id="t-dt" onclick="goTab('dt')"><div class="tbi">📈</div><div class="tbl" data-en="Detail">详情</div></div>
+  <div class="tab" id="t-an" onclick="goTab('an')"><div class="tbi">🔬</div><div class="tbl" data-en="Analyst">分析师</div></div>
+  <div class="tab" id="t-pd" onclick="goTab('pd')"><div class="tbi">🎯</div><div class="tbl" data-en="Market">预测</div></div>
+</div>
+</div>
+
+<!-- MODALS -->
+<div class="mo" id="mo-newrel"><div class="ms"><div class="mh"></div><div class="mt" data-en="New Relationship">新建关系资产</div>
+<div class="fg"><label class="fl" data-en="RELATIONSHIP NAME">关系名称</label><input class="rinp" id="nr-name" placeholder="例如：我和小明" data-en-ph="e.g. Me and Alex" maxlength="20"></div>
+<div class="two">
+  <div class="fg"><label class="fl" data-en="NAME A">A方称呼</label><input class="rinp" id="nr-a" placeholder="小红" data-en-ph="Robin" maxlength="10"></div>
+  <div class="fg"><label class="fl" data-en="NAME B">B方称呼</label><input class="rinp" id="nr-b" placeholder="小明" data-en-ph="Alex" maxlength="10"></div>
+</div>
+<div class="fg"><label class="fl" data-en="TICKER (2-6 LETTERS/DIGITS)">关系代号（2-6位字母/数字）</label><input class="rinp" id="nr-tk" placeholder="留空自动生成" data-en-ph="Leave blank to auto-generate" maxlength="6" style="text-transform:uppercase;letter-spacing:2px"></div>
+<div style="height:8px"></div>
+<button class="mb" style="background:var(--g);color:#000" onclick="createRel()" data-en="Create">创建</button>
+<button class="mc" onclick="closeMo('newrel')" data-en="Cancel">取消</button>
+</div></div>
+
+<div class="mo" id="mo-join"><div class="ms"><div class="mh"></div><div class="mt" data-en="Predict someone else">预测他人的关系</div><div class="msu" data-en="Enter the ticker a friend shared with you to join their market">输入朋友分享给你的关系代号，参与他们的预测市场</div>
+<div class="fg"><label class="fl" data-en="TICKER">关系代号</label><input class="rinp" id="jn-code" placeholder="例如 XHXM" data-en-ph="e.g. RBAX" maxlength="6" style="text-transform:uppercase;letter-spacing:3px;text-align:center;font-size:18px"></div>
+<div style="font-size:10px;color:var(--t3);margin-bottom:12px;line-height:1.5" data-en="Tip: if your friend sent a link, just open it — you will join automatically.">提示：如果朋友发给你的是链接，直接点开链接即可自动加入，无需手动输入代号。</div>
+<button class="mb" style="background:var(--go);color:#000" onclick="joinByCode()" data-en="Join">加入</button>
+<button class="mc" onclick="closeMo('join')" data-en="Cancel">取消</button>
+</div></div>
+
+<div class="mo" id="mo-share"><div class="ms"><div class="mh"></div><div class="mt" data-en="Invite friends 🎫">邀请朋友预测 🎫</div><div class="msu" data-en="Send the link or ticker below — they can go long or short on this relationship">把下面的链接或代号发给朋友，他们点开就能给这段感情做多或做空</div>
+<div style="text-align:center;margin-bottom:14px"><div style="font-size:9px;color:var(--t2);letter-spacing:2px;margin-bottom:6px" data-en="TICKER">关系代号</div><div style="font-size:32px;font-weight:800;font-family:Syne,sans-serif;color:var(--go);letter-spacing:4px" id="sh-code">--</div></div>
+<div class="share-box" id="sh-link">--</div>
+<div id="sh-note" style="background:var(--pd);border:1px solid rgba(155,93,229,.2);border-radius:9px;padding:9px 11px;margin-bottom:12px;font-size:10px;color:var(--pu);line-height:1.6"></div>
+<button class="mb" id="sh-btn-copy" style="background:var(--go);color:#000" onclick="copyLink()" data-en="Copy invite link">复制邀请链接</button>
+<button class="mc" onclick="closeMo('share')" data-en="Close">关闭</button>
+</div></div>
+
+<div class="mo" id="mo-calib"><div class="ms"><div class="mh"></div><div class="mt" data-en="Calibrate Position">校准仓位</div><div class="msu" data-en="Set how much you have actually invested. Only you know this number — the system should not decide it for you.">设置你在这段关系里实际投入的程度。这个数字只有你自己知道，系统不该替你决定。</div>
+<div style="background:var(--s2);border-radius:10px;padding:12px;margin-bottom:14px">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+    <span style="font-size:10px;color:var(--t2)" data-en="ACTUAL POSITION">真实仓位</span>
+    <span id="cb-pos" style="font-size:26px;font-weight:800;font-family:Syne,sans-serif;color:var(--g)">50%</span>
+  </div>
+  <input type="range" class="rsl" id="cb-sl" min="5" max="100" step="5" value="50" oninput="updCalib()">
+  <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-top:5px"><span data-en="5% probe">5% 试探仓</span><span data-en="100% full">100% 全仓</span></div>
+  <div id="cb-desc" style="font-size:10px;color:var(--t2);line-height:1.6;margin-top:8px"></div>
+</div>
+<button class="mb" style="background:var(--g);color:#000" onclick="confirmCalib()" data-en="Confirm">确认</button><button class="mc" onclick="closeMo('calib')" data-en="Cancel">取消</button></div></div>
+
+<div class="mo" id="mo-addpos"><div class="ms"><div class="mh"></div><div class="mt" data-en="Add">加仓</div><div class="msu" data-en="Things improved. Add to your position. Entry price updates by weighted average.">关系变好了，追加投入。成本价按仓位加权更新。</div>
+<div style="background:var(--s2);border-radius:10px;padding:12px;margin-bottom:12px">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+    <span style="font-size:10px;color:var(--t2)" data-en="ADD SIZE">加仓幅度</span>
+    <span id="ap-pos" style="font-size:26px;font-weight:800;font-family:Syne,sans-serif;color:var(--g)">+10%</span>
+  </div>
+  <input type="range" class="rsl" id="ap-sl" min="5" max="100" step="5" value="10" oninput="updAddPos()">
+  <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-top:5px"><span>+5%</span><span id="ap-max" data-en="up to +50%">最多 +50%</span></div>
+</div>
+<div class="bi">
+  <div class="bir"><span style="color:var(--t2)" data-en="Current position">当前仓位</span><span id="ap-cur" style="font-weight:600">--</span></div>
+  <div class="bir"><span style="color:var(--t2)" data-en="After adding">加仓后仓位</span><span id="ap-after" style="font-weight:600;color:var(--g)">--</span></div>
+  <div class="bir"><span style="color:var(--t2)" data-en="Current entry price">当前成本价</span><span id="ap-entry" style="font-weight:600">--</span></div>
+  <div class="bir"><span style="color:var(--t2)" data-en="Current valuation">当前估值</span><span id="ap-now" style="font-weight:600">--</span></div>
+  <div class="bir"><span style="color:var(--t2)" data-en="New entry price">加仓后成本价</span><span id="ap-new" style="font-weight:600;color:var(--g)">--</span></div>
+</div>
+<div style="font-size:10px;color:var(--t3);line-height:1.6;margin-bottom:12px" data-en="Adding raises your entry price — you will need a better outcome to break even.">加仓会拉高你的成本价，意味着你需要更好的结果才能回本。</div>
+<div style="background:var(--s2);border-radius:10px;padding:12px;margin-bottom:14px">
+  <div style="font-size:10px;color:var(--t2);margin-bottom:8px" data-en="Will this relationship still exist a year from now?">你觉得这段关系一年后还存续吗？</div>
+  <div style="display:flex;gap:6px">
+    <div class="ol-o" data-m="ap" data-v="yes" onclick="setOutlook(this)" data-en="Yes">会</div>
+    <div class="ol-o" data-m="ap" data-v="maybe" onclick="setOutlook(this)" data-en="Not sure">不确定</div>
+    <div class="ol-o" data-m="ap" data-v="no" onclick="setOutlook(this)" data-en="No">不会</div>
+  </div>
+</div>
+<button class="mb" style="background:var(--g);color:#000" onclick="confirmAdd()" data-en="Confirm add">确认加仓</button><button class="mc" onclick="closeMo('addpos')" data-en="Cancel">取消</button></div></div>
+
+<div class="mo" id="mo-cutpos"><div class="ms"><div class="mh"></div><div class="mt" data-en="Cut">减仓</div><div class="msu" data-en="Something feels off but you are not leaving yet. Reduce exposure, keep watching.">感觉不对但还没到要走。降低投入，保留观察。</div>
+<div style="background:var(--yd);border:1px solid rgba(255,190,11,.2);border-radius:9px;padding:10px 12px;margin-bottom:12px;font-size:10px;color:var(--y);line-height:1.6" data-en-html="Cutting leaves a permanent marker on the chart.<br>Most people do not leave suddenly — they slowly reduce. Making that visible is the point.">减仓会在 K 线上留下一个永久标记。<br>现实里大部分人不是突然分手，而是慢慢减少投入——让这个动作可见，是为了让你自己看见。</div>
+<div style="background:var(--s2);border-radius:10px;padding:12px;margin-bottom:12px">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+    <span style="font-size:10px;color:var(--t2)" data-en="CUT SIZE">减仓幅度</span>
+    <span id="cp-pos" style="font-size:26px;font-weight:800;font-family:Syne,sans-serif;color:var(--y)">−10%</span>
+  </div>
+  <input type="range" class="rsl" id="cp-sl" min="5" max="100" step="5" value="10" oninput="updCutPos()" style="--c:var(--y)">
+  <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-top:5px"><span>−5%</span><span id="cp-max" data-en="up to −100%">最多 −100%</span></div>
+</div>
+<div class="bi">
+  <div class="bir"><span style="color:var(--t2)" data-en="Current position">当前仓位</span><span id="cp-cur" style="font-weight:600">--</span></div>
+  <div class="bir"><span style="color:var(--t2)" data-en="After cutting">减仓后仓位</span><span id="cp-after" style="font-weight:600;color:var(--y)">--</span></div>
+  <div class="bir"><span style="color:var(--t2)" data-en="Realized P&L">本次兑现盈亏</span><span id="cp-pnl" style="font-weight:600">--</span></div>
+  <div class="bir"><span style="color:var(--t2)" data-en="Times cut">已减仓次数</span><span id="cp-count" style="font-weight:600">0</span></div>
+</div>
+<div id="cp-warn" style="display:none;font-size:10px;color:var(--r);line-height:1.6;margin-bottom:12px"></div>
+<div style="background:var(--s2);border-radius:10px;padding:12px;margin-bottom:14px">
+  <div style="font-size:10px;color:var(--t2);margin-bottom:8px" data-en="Will this relationship still exist a year from now?">你觉得这段关系一年后还存续吗？</div>
+  <div style="display:flex;gap:6px">
+    <div class="ol-o" data-m="cp" data-v="yes" onclick="setOutlook(this)" data-en="Yes">会</div>
+    <div class="ol-o" data-m="cp" data-v="maybe" onclick="setOutlook(this)" data-en="Not sure">不确定</div>
+    <div class="ol-o" data-m="cp" data-v="no" onclick="setOutlook(this)" data-en="No">不会</div>
+  </div>
+</div>
+<button class="mb" style="background:var(--y);color:#000" onclick="confirmCut()" data-en="Confirm cut">确认减仓</button><button class="mc" onclick="closeMo('cutpos')" data-en="Cancel">取消</button></div></div>
+
+<div class="mo" id="mo-open"><div class="ms"><div class="mh"></div><div class="mt" data-en="Open Position">开仓</div><div class="msu" data-en="Commit emotional capital — time, energy, attention, future possibilities">向这段感情投入情感资本 — 时间、精力、注意力、未来的可能性</div>
+<div class="mp" id="op-p" style="color:var(--g)">--</div>
+<div style="font-size:9px;color:var(--t2);letter-spacing:2px;margin:6px 0 8px;text-align:center" data-en="ENTRY PRICE">建仓成本价</div>
+<div style="background:var(--s2);border-radius:10px;padding:12px;margin-bottom:14px">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+    <span style="font-size:10px;color:var(--t2)" data-en="INITIAL POSITION">初始仓位</span>
+    <span id="op-pos" style="font-size:26px;font-weight:800;font-family:Syne,sans-serif;color:var(--g)">50%</span>
+  </div>
+  <input type="range" class="rsl" id="op-sl" min="5" max="100" step="5" value="50" oninput="updOpenPos()">
+  <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-top:5px"><span data-en="5% probe">5% 试探仓</span><span data-en="100% full">100% 全仓</span></div>
+  <div id="op-desc" style="font-size:10px;color:var(--t2);line-height:1.6;margin-top:8px"></div>
+</div>
+<button class="mb" style="background:var(--g);color:#000" onclick="confirmOpen()" data-en="Confirm">确认开仓</button><button class="mc" onclick="closeMo('open')" data-en="Cancel">取消</button></div></div>
+
+<div class="mo" id="mo-close"><div class="ms"><div class="mh"></div><div class="mt" data-en="Close Position">平仓</div><div class="msu" data-en="Exit this relationship">退出这段感情</div><div class="mp" id="cl-p" style="color:var(--r)">--</div><div class="mn" data-en-html="Sunk cost is not a reason to hold.<br>After closing, the index resets to zero and return settles at 0%.">沉没成本不是继续持仓的理由。<br>平仓后指数将归零，收益率结算为 0%。</div><button class="mb" style="background:var(--r);color:#fff" onclick="confirmClose()" data-en="Confirm close">确认平仓</button><button class="mc" onclick="closeMo('close')" data-en="Cancel">取消</button></div></div>
+
+<div class="mo" id="mo-earn"><div class="ms"><div class="mh"></div><div class="mt" data-en="Earn coins 🪙">赚取硬币 🪙</div><div class="msu" data-en="Choose your role. Friends and family answer a quiz — the better you know them, the more coins you get.">选择你的身份。当事人直接获得本金；亲友需要答题，越了解硬币越多。</div>
+<div class="est"><div class="esn">1</div><div><div class="est-t" data-en="Choose your role in this relationship">选择你与这段关系的身份</div><div class="est-s" data-en="Insider / friend / third party">当事人 / 亲友 / 第三者</div></div></div>
+<div class="est"><div class="esn">2</div><div><div class="est-t" data-en="The couple sets the answer key; others are scored against it">当事人填标准答案，亲友答题对比</div><div class="est-s" data-en="Higher accuracy earns more coins">准确率越高，获得硬币越多</div></div></div>
+<div class="est"><div class="esn">3</div><div><div class="est-t" data-en="Use coins to join the prediction market">获得硬币，参与预测市场</div><div class="est-s" data-en="Go long or short on this relationship">做多或做空这段感情</div></div></div>
+<div style="height:14px"></div>
+<button class="mb" style="background:var(--go);color:#000" onclick="startRelPick()" data-en="Start">开始</button>
+<button class="mc" onclick="closeMo('earn')" data-en="Cancel">取消</button>
+</div></div>
+
+<div class="mo" id="mo-rel"><div class="ms"><div class="mh"></div><div class="mt" data-en="Who are you?">你是谁？</div><div class="msu" id="rel-sub" data-en="Choose your role in this relationship">选择你与这段关系的身份</div>
+<div id="rel-opts"></div>
+<div style="height:12px"></div>
+<button class="mb" id="rel-nx" style="background:var(--s3);color:var(--t2)" disabled onclick="afterRel()" data-en="Next →">下一步 →</button>
+<button class="mc" onclick="closeMo('rel')" data-en="Back">返回</button>
+</div></div>
+
+<div class="mo" id="mo-who"><div class="ms"><div class="mh"></div>
+<div class="qw qw-p" data-en="PRE-QUESTION">前置问题</div>
+<div class="qt" data-en="Which side of this relationship do you know better?">你更了解这段感情里的哪一方？</div>
+<div class="qs" data-en="The high-weight questions will focus on whoever you choose">后续高权重题目将围绕你选择的那一方展开</div>
+<div id="who-opts"></div>
+<div style="height:12px"></div>
+<button class="mb" id="who-nx" style="background:var(--s3);color:var(--t2)" disabled onclick="startQuiz()" data-en="Start quiz →">开始答题 →</button>
+</div></div>
+
+<div class="mo" id="mo-quiz"><div class="ms"><div class="mh"></div>
+<div class="qpr" id="qpr"></div><div id="qwb"></div>
+<div class="qt" id="qt"></div><div class="qs" id="qs"></div>
+<div class="qop" id="qop"></div>
+<div style="height:12px"></div>
+<button class="mb" id="qnx" style="background:var(--s3);color:var(--t2)" disabled onclick="nextQ()" data-en="Next">下一题</button>
+</div></div>
+
+<div class="mo" id="mo-qres"><div class="ms"><div class="mh"></div>
+<div style="text-align:center;padding:8px 0"><div style="font-size:48px;font-weight:800;font-family:Syne,sans-serif;color:var(--go);letter-spacing:-1.5px" id="qr-p">--</div><div style="font-size:11px;color:var(--t2);margin-top:3px;margin-bottom:16px" id="qr-lbl" data-en="Overall accuracy">综合准确率</div></div>
+<div class="qsc" id="qr-bd"></div>
+<div style="display:flex;align-items:center;justify-content:center;gap:7px;font-size:18px;font-weight:700;color:var(--go);margin-bottom:5px">🪙 <span id="qr-c">0</span> <span style="font-size:13px;color:var(--t2)" data-en="coins credited">硬币已入账</span></div>
+<div style="font-size:10px;color:var(--t2);margin-bottom:18px;text-align:center" id="qr-r"></div>
+<button class="mb" style="background:var(--go);color:#000" onclick="finishEarn()" data-en="Go bet →">去下注 →</button>
+<button class="mc" onclick="closeMo('qres')" data-en="Later">稍后再说</button>
+</div></div>
+
+<div class="mo" id="mo-bet"><div class="ms"><div class="mh"></div>
+<div class="mt" id="bt-t" data-en="Long">做多</div><div class="msu" id="bt-s"></div>
+<div id="bt-note" style="display:none;background:var(--god);border:1px solid rgba(244,196,48,.2);border-radius:9px;padding:9px 12px;margin-bottom:12px;font-size:10px;color:var(--go)" data-en="Insider weight ×3">当事人的仓位影响力 ×3</div>
+<div class="bt" id="bt-tabs"><div class="btb l on" id="btb-l" onclick="swBt('long')" data-en="📈 Long">📈 做多</div><div class="btb s" id="btb-s" onclick="swBt('short')" data-en="📉 Short">📉 做空</div></div>
+<div style="font-size:8px;color:var(--t2);letter-spacing:2px;margin-bottom:7px" data-en="AMOUNT">投入金额</div>
+<div class="bam" id="bt-am">1,000</div>
+<div style="padding:0 2px;margin-bottom:12px"><input type="range" class="rsl" id="bt-sl" min="0" max="100" value="100" oninput="slideBet(this.value)"><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-top:5px"><span>0</span><span id="bt-pctlbl" style="color:var(--go)" data-en="100% of balance">100% 余额</span><span id="bt-maxlbl">--</span></div></div>
+<div class="bpr" id="bt-pre"><div class="bp" onclick="setPct(.25)">25%</div><div class="bp" onclick="setPct(.5)">50%</div><div class="bp" onclick="setPct(.75)">75%</div><div class="bp" onclick="setPct(1)" data-en="Max">全仓</div></div>
+<div class="bi"><div class="bir"><span style="color:var(--t2)" data-en="Balance">当前余额</span><span id="bi-b" style="font-weight:600">0 🪙</span></div><div class="bir"><span style="color:var(--t2)" data-en="After bet">投入后余额</span><span id="bi-a" style="font-weight:600">0 🪙</span></div><div class="bir" id="bi-rr"><span style="color:var(--t2)" data-en="Payout if short wins">预计收益（做空胜出）</span><span id="bi-r" style="font-weight:600;color:var(--r)">--</span></div></div>
+<button class="mb" id="bt-ok" style="background:var(--g);color:#000" onclick="confirmBet()" data-en="Confirm">确认投入</button>
+<button class="mc" onclick="closeMo('bet')" data-en="Cancel">取消</button>
+</div></div>
+
+<script src="api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
