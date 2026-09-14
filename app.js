@@ -68,7 +68,7 @@ I18N.zh={
  f_struct:'结构性风险溢价激活',f_gap:'情绪稳定性落差 {n} · 照顾者结构',f_labor:'情感劳动失衡 {n}%',f_laborsk:'情感劳动偏斜 {n}%',
  f_mktlong:'市场情绪：做多占优',f_mktshort:'市场情绪：做空占优',
  l5:'⬡ LAYER 5 激活 — ',l5def:'结构性风险溢价已加载。',
- lab_card:'情感劳动分布',lab_me_n:'我 {n} 项',lab_even_n:'均衡 {n}',lab_them_n:'对方 {n} 项',
+ lab_card:'情感劳动分布',lab_me_n:'我 {n} 项',lab_even_n:'均衡 {n}',lab_them_n:'对方 {n} 项',lab_even_note:'另有 {n} 项两人相当',
  lab_heavy:'主要由你承担：',lab_light:'主要由对方承担：',
  lab_warn:'失衡度 {n}% — 这不是感受，是清单上的事实。长期单向的情感劳动会被双方共同视为理所当然，且很少被计入关系的账本。',
  lab_answered:'情感劳动分布 · 已回答 {n}/26',
@@ -175,7 +175,7 @@ I18N.en={
  f_struct:'Structural risk premium active',f_gap:'Stability gap {n} · caretaker structure',f_labor:'Labor imbalance {n}%',f_laborsk:'Labor skew {n}%',
  f_mktlong:'Sentiment: longs lead',f_mktshort:'Sentiment: shorts lead',
  l5:'⬡ LAYER 5 ACTIVE — ',l5def:'Structural risk premium loaded.',
- lab_card:'EMOTIONAL LABOR',lab_me_n:'Me {n}',lab_even_n:'Even {n}',lab_them_n:'Them {n}',
+ lab_card:'EMOTIONAL LABOR',lab_me_n:'Me {n}',lab_even_n:'Even {n}',lab_them_n:'Them {n}',lab_even_note:'{n} more shared evenly',
  lab_heavy:'Mostly you: ',lab_light:'Mostly them: ',
  lab_warn:'Imbalance {n}% — this is not a feeling, it is what the checklist says. One-directional emotional labor becomes invisible to both people and rarely enters the ledger.',
  lab_answered:'EMOTIONAL LABOR · {n}/26 answered',
@@ -1351,6 +1351,12 @@ function renderLabor(){
     h+='</div>';
   }
   $('labor-mod').innerHTML=h;
+  // 重新渲染后恢复已选状态，否则界面和计数会对不上
+  for(var k in LAB){
+    var el=document.querySelector('.lab-o[data-k="'+k+'"][data-v="'+LAB[k]+'"]');
+    if(el) el.classList.add('on');
+  }
+  updLaborResult();
 }
 function setLab(el){
   var k=el.getAttribute('data-k'),v=el.getAttribute('data-v');
