@@ -128,7 +128,7 @@ I18N.zh={
  ts_copied:'链接已复制',ts_copiedcode:'代号已复制',ts_nocopy:'没有可复制的内容',ts_manualcopy:'请长按上方链接手动复制',
  ts_reset:'已清空全部数据',ts_selectrel:'请先选择一段关系',ts_selectrel2:'请先选择关系',
  ts_assessdone:'评估完成 · 可前往详情页开仓',ts_createfirst:'请先创建一段关系',
- confirm_reset:'这会清空所有关系、持仓和硬币记录，且无法恢复。确定继续吗？',
+ confirm_reset:'这会清空所有关系、持仓和硬币记录，且无法恢复。确定继续吗？',confirm_del:'删除 {n} ？这段关系的评估、仓位和所有预测记录都会消失，无法恢复。',ts_deleted:'已删除',
  self_role:'当事人（本人）',anon_parent:'父母/长辈',anon_sibling:'兄弟姐妹',anon_bestfriend:'闺蜜/死党',
  anon_friend:'普通朋友',anon_acquaintance:'路人甲',anon_third:'神秘第三者 😈',anon_default:'匿名用户',
  share_local:'⚠ 当前是本地预览环境，无法生成可分享的链接。',
@@ -235,7 +235,7 @@ I18N.en={
  ts_copied:'Link copied',ts_copiedcode:'Ticker copied',ts_nocopy:'Nothing to copy',ts_manualcopy:'Long-press the link above to copy',
  ts_reset:'All data cleared',ts_selectrel:'Select a relationship first',ts_selectrel2:'Select a relationship first',
  ts_assessdone:'Assessment done · open a position on the detail tab',ts_createfirst:'Create a relationship first',
- confirm_reset:'This clears all relationships, positions and coins. It cannot be undone. Continue?',
+ confirm_reset:'This clears all relationships, positions and coins. It cannot be undone. Continue?',confirm_del:'Delete {n}? Its assessment, position and all predictions will be gone for good.',ts_deleted:'Deleted',
  self_role:'Insider (you)',anon_parent:'Parent / elder',anon_sibling:'Sibling',anon_bestfriend:'Best friend',
  anon_friend:'Friend',anon_acquaintance:'Acquaintance',anon_third:'Mystery third party 😈',anon_default:'Anonymous',
  share_local:'⚠ This is a local preview — a shareable link cannot be generated here.',
@@ -437,6 +437,7 @@ function relCard(r){
     posTag=r.status==='open'?'<span style="color:var(--g)">'+t('rc_pos',{n:(r.position||0)})+'</span> · ':'';
   }
   return '<div class="rel-card'+(r.id===DB.active?' active':'')+(r.joined?' obs':'')+'" onclick="pickRel(\''+r.id+'\')">'+
+    '<div class="rc-del" onclick="event.stopPropagation();delRel(\''+r.id+'\')" title="删除">×</div>'+
     '<div class="rc-top"><div><div class="rc-ticker">$'+r.ticker+'</div><div class="rc-name">'+r.name+' · '+r.nameA+' & '+r.nameB+'</div></div>'+
     '<div><div class="rc-score" style="color:'+col+'">'+(sc===null?'--':sc)+'</div><div class="rc-verdict" style="color:'+col+'">'+vd+'</div></div></div>'+
     '<div class="rc-bot">'+tag+'<span>'+posTag+t('rc_bets',{n:np})+'</span></div></div>';
@@ -461,6 +462,18 @@ function renderPF(){
     for(var m=0;m<obs.length;m++)h+=relCard(obs[m]);
   }
   L.innerHTML=h;
+}
+async function delRel(id){
+  var r=null;
+  for(var i=0;i<DB.rels.length;i++) if(DB.rels[i].id===id) r=DB.rels[i];
+  if(!r) return;
+  if(!confirm(t('confirm_del',{n:'$'+r.ticker}))) return;
+  if(BACKEND_READY && !r.joined){
+    try{ await apiDeleteRel(id); }catch(e){ tst('删除失败'); return }
+  }
+  DB.rels = DB.rels.filter(function(x){ return x.id!==id });
+  if(DB.active===id) DB.active = DB.rels.length?DB.rels[0].id:null;
+  save(); renderPF(); tst(t('ts_deleted'));
 }
 function pickRel(id){DB.active=id;save();goTab('dt');if(typeof watchActive==='function')watchActive();}
 
@@ -1151,6 +1164,7 @@ async function ownerAnswersDone(){
   SESS.mode=null;
   renderDT();
   tst(t('ts_answers_saved'));
+  setTimeout(function(){ openShare(); }, 600);   // 填完直接引导去邀请
 }
 
 /* ═══ A4 · 预测档案（本地版）═══ */

@@ -139,6 +139,11 @@ async function apiSaveResult(relId, result){
   }).eq('id', relId);
 }
 
+async function apiDeleteRel(relId){
+  var r = await sb.from('relationships').delete().eq('id', relId);
+  if(r.error) throw r.error;
+}
+
 /* ─── 仓位操作 ───────────────────────────────────────────── */
 async function apiOpen(relId, price, size){
   await sb.from('relationships').update({
