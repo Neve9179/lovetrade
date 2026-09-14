@@ -6,10 +6,11 @@
 <meta name="theme-color" content="#060608">
 <title>LoveTrade</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="shell">
-<div class="sbar"><span id="clk" style="font-family:'Syne',sans-serif;font-weight:500"></span><button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button></div>
+<div class="sbar"><span id="clk" style="font-family:'Syne',sans-serif;font-weight:500"></span><span style="display:flex;align-items:center;gap:8px"><span id="net-badge" style="font-size:9px;letter-spacing:1px;color:var(--t3)">● …</span><button class="lang-btn" id="lang-btn" onclick="toggleLang()">EN</button></span></div>
 <div class="scroll" id="scroll">
 
 <!-- PORTFOLIO -->
@@ -53,6 +54,11 @@
   </div>
   <div id="insider-feed" style="display:none;margin:12px 20px 0;background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:12px 14px"></div>
   <div id="hold-stats" style="display:none;margin:12px 20px 0;background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:12px 14px"></div>
+  <div id="ans-card" style="display:none;margin:12px 20px 0;background:var(--pd);border:1px solid rgba(155,93,229,.25);border-radius:14px;padding:13px 15px">
+    <div style="font-size:9px;color:var(--pu);letter-spacing:2px;margin-bottom:6px" data-en="📋 ANSWER KEY — REQUIRED BEFORE SHARING">📋 感情标准答案 — 分享前必填</div>
+    <div style="font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:10px" data-en="Answer the 20 questions about yourself. Your answers stay private — friends are scored against them but never see them.">回答关于你自己的 20 道题。答案完全保密，朋友的回答会与之比对，但他们永远看不到内容。</div>
+    <button style="width:100%;padding:10px;border-radius:50px;background:var(--pu);color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:Syne,sans-serif" onclick="pickAnswerSide()" data-en="Fill in the answer key">填写标准答案</button>
+  </div>
   <div class="share-bar" id="share-bar">
     <div class="sb-t" data-en="🎫 TICKER — SHARE TO INVITE PREDICTIONS">🎫 关系代号 — 分享给朋友参与预测</div>
     <div class="sb-code" id="dt-code">--</div>
@@ -312,6 +318,15 @@
 <div id="who-opts"></div>
 <div style="height:12px"></div>
 <button class="mb" id="who-nx" style="background:var(--s3);color:var(--t2)" disabled onclick="startQuiz()" data-en="Start quiz →">开始答题 →</button>
+</div></div>
+
+<div class="mo" id="mo-ansside"><div class="ms"><div class="mh"></div>
+<div class="mt" data-en="Whose answers?">填谁的答案？</div>
+<div class="msu" data-en="Answer as yourself. If both of you use this app, each fills in their own side.">以你自己的身份作答。如果双方都在用，各自填各自那一方。</div>
+<div class="wo" onclick="closeMo('ansside');startOwnerAnswers('A')"><div class="wr"></div><div>我是 <b id="as-a">A</b></div></div>
+<div class="wo" onclick="closeMo('ansside');startOwnerAnswers('B')"><div class="wr"></div><div>我是 <b id="as-b">B</b></div></div>
+<div style="height:12px"></div>
+<button class="mc" onclick="closeMo('ansside')" data-en="Cancel">取消</button>
 </div></div>
 
 <div class="mo" id="mo-quiz"><div class="ms"><div class="mh"></div>

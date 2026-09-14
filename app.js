@@ -138,7 +138,7 @@ I18N.zh={
  share_note:'💡 如果对方也是当事人，让ta用这个链接加入后，在「赚取硬币」里选择「我是当事人」即可获得同等权限。',
  share_note2:'注意：当前版本数据存在各自设备上，双方看到的下注记录不会实时同步，需要后端才能打通。',
  rel_sub:'选择你与「{n}」的身份',
- lock_hint:'🔒 请先开仓锁定你自己的判断，再邀请亲友预测',
+ lock_hint:'🔒 请先开仓锁定你自己的判断，再邀请亲友预测',lock_answers:'🔒 请先填写标准答案，朋友答题才有分可评',
  ph_5:'5% 试探仓',ph_100:'100% 全仓',ph_bal:'{n}% 余额',
  owner_only:'只有当事人可以操作仓位',obs_banner:'👀 你正在观察 <b>{n}</b> 的关系 — 可以预测，不能操作仓位',
  obs_tag:'观察中',mine_tag:'我的',grp_mine:'我的持仓',grp_obs:'我在观察',btn_predict:'去预测市场 →',
@@ -245,7 +245,7 @@ I18N.en={
  share_note:'💡 If the other person is also in the relationship, have them open this link and pick their role under "Earn coins".',
  share_note2:'Note: in this version data lives on each device, so bets do not sync between you. That needs a backend.',
  rel_sub:'Choose your role in "{n}"',
- lock_hint:'🔒 Open a position first to lock in your own view, then invite others',
+ lock_hint:'🔒 Open a position first to lock in your own view, then invite others',lock_answers:'🔒 Fill in the answer key first — otherwise friends cannot be scored',
  ph_5:'5% probe',ph_100:'100% full',ph_bal:'{n}% of balance',
  owner_only:'Only the person in the relationship can manage the position',obs_banner:'👀 You are observing <b>{n}</b> — you can predict, but not manage the position',
  obs_tag:'Observing',mine_tag:'Mine',grp_mine:'MY POSITIONS',grp_obs:'OBSERVING',btn_predict:'Go to market →',
@@ -271,7 +271,40 @@ I18N.en={
 
 /* ═══ STATE & STORAGE ═══ */
 var DB={coins:0,rels:[],active:null};
-function save(){try{localStorage.setItem('lovetrade_v2',JSON.stringify(DB))}catch(e){}}
+function save(){
+  if(BACKEND_READY) return;              // 后端模式下由各操作直接写库
+  try{localStorage.setItem('lovetrade_v2',JSON.stringify(DB))}catch(e){}
+}
+/* 从数据库重新拉取全部关系 */
+async function syncAll(){
+  if(!BACKEND_READY) return;
+  try{
+    var rels = await apiMyRels();
+    var coins = await apiMyCoins();
+    var prof  = await apiMyProfile();
+    for(var i=0;i<rels.length;i++){
+      rels[i].earned = await apiEarnedRoles(rels[i].id);
+    }
+    DB.rels = rels;
+    DB.coins = coins;
+    DB.record = prof ? {total:prof.total,right:prof.correct,correct:prof.correct,
+                        wrong:prof.wrong,longs:prof.longs,shorts:prof.shorts} : null;
+    if(DB.active && !cur()) DB.active = rels.length?rels[0].id:null;
+  }catch(e){ console.warn('sync failed',e) }
+}
+/* 只刷新当前这一段关系 */
+async function syncOne(relId){
+  if(!BACKEND_READY) return;
+  try{
+    var fresh = await apiRefreshRel(relId);
+    if(!fresh) return;
+    fresh.earned = await apiEarnedRoles(relId);
+    for(var i=0;i<DB.rels.length;i++){
+      if(DB.rels[i].id===relId){ DB.rels[i]=fresh; break }
+    }
+    DB.coins = await apiMyCoins();
+  }catch(e){ console.warn('syncOne failed',e) }
+}
 function load(){
   try{var d=localStorage.getItem('lovetrade_v2');if(d)DB=JSON.parse(d)}catch(e){}
   migrate();
@@ -282,6 +315,13 @@ function hardReset(){
   try{localStorage.removeItem('lovetrade_v2')}catch(e){}
   DB={coins:0,rels:[],active:null};
   save();renderPF();goTab('pf');tst(t('ts_reset'));
+}
+/* 顶部后端状态提示 */
+function setNetBadge(){
+  var el=document.getElementById('net-badge');
+  if(!el) return;
+  if(BACKEND_READY){ el.textContent='\u25CF SYNC'; el.style.color='var(--g)'; el.title='已连接云端'; }
+  else { el.textContent='\u25CF LOCAL'; el.style.color='var(--y)'; el.title='本地模式：'+(BACKEND_ERR||'未连接'); }
 }
 function migrate(){
   if(!DB.rels)DB.rels=[];
@@ -422,42 +462,82 @@ function renderPF(){
   }
   L.innerHTML=h;
 }
-function pickRel(id){DB.active=id;save();goTab('dt')}
+function pickRel(id){DB.active=id;save();goTab('dt');if(typeof watchActive==='function')watchActive();}
 
-function createRel(){
+async function createRel(){
   var nm=$('nr-name').value.trim(),a=$('nr-a').value.trim(),b=$('nr-b').value.trim(),tk=$('nr-tk').value.trim().toUpperCase();
   if(!nm){tst(t('ts_needname'));return}
   if(!a||!b){tst(t('ts_needab'));return}
   if(!tk)tk=genTicker();
   if(!/^[A-Z0-9]{2,6}$/.test(tk)){tst(t('ts_badticker'));return}
   for(var i=0;i<DB.rels.length;i++)if(DB.rels[i].ticker===tk){tst(t('ts_dupticker'));return}
-  var r={id:uid(),ticker:tk,name:nm,nameA:a,nameB:b,created:Date.now(),assessment:null,result:null,positions:[],status:'none'};
-  DB.rels.push(r);DB.active=r.id;save();
+  var r;
+  if(BACKEND_READY){
+    try{ r = await apiCreateRel({ticker:tk,name:nm,nameA:a,nameB:b}); }
+    catch(e){
+      if(e && (e.code==='23505'||(''+e.message).indexOf('duplicate')>=0)){tst(t('ts_dupticker'));return}
+      tst('创建失败：'+((e&&e.message)||'')); return;
+    }
+    DB.rels.push(r);
+  }else{
+    r={id:uid(),ticker:tk,name:nm,nameA:a,nameB:b,created:Date.now(),result:null,positions:[],lots:[],earned:{},status:'none'};
+    DB.rels.push(r);
+  }
+  DB.active=r.id;save();
   $('nr-name').value='';$('nr-a').value='';$('nr-b').value='';$('nr-tk').value='';
   closeMo('newrel');tst(t('ts_created',{n:tk}));goTab('an');
 }
-function joinByCode(){
+async function joinByCode(){
   var c=$('jn-code').value.trim().toUpperCase();
   if(!c){tst(t('ts_needticker'));return}
-  for(var i=0;i<DB.rels.length;i++)if(DB.rels[i].ticker===c){DB.active=DB.rels[i].id;save();closeMo('join');tst(t('ts_switched',{n:c}));goTab('dt');return}
-  var r={id:uid(),ticker:c,name:'$'+c,nameA:t('side_a'),nameB:t('side_b'),created:Date.now(),assessment:null,result:null,positions:[],status:'none',joined:true};
-  DB.rels.push(r);DB.active=r.id;save();$('jn-code').value='';
+  for(var i=0;i<DB.rels.length;i++)if(DB.rels[i].ticker===c){
+    DB.active=DB.rels[i].id;save();closeMo('join');tst(t('ts_switched',{n:c}));goTab('dt');return}
+  if(BACKEND_READY){
+    var row=null;
+    try{ row = await apiGetByTicker(c); }catch(e){}
+    if(!row){ tst(t('ts_nosuch')); return }
+    var fresh = await apiRefreshRel(row.id);
+    fresh.earned = await apiEarnedRoles(row.id);
+    DB.rels.push(fresh); DB.active=fresh.id;
+  }else{
+    var r={id:uid(),ticker:c,name:'$'+c,nameA:t('side_a'),nameB:t('side_b'),created:Date.now(),result:null,positions:[],lots:[],earned:{},status:'none',joined:true};
+    DB.rels.push(r);DB.active=r.id;
+  }
+  save();$('jn-code').value='';
   closeMo('join');tst(t('ts_joined',{n:c}));goTab('dt');
 }
-/* URL join */
+/* URL join —— 通过邀请链接进入 */
+var PENDING_JOIN = null;
 (function(){
   try{
     var m=location.search.match(/[?&]j=([^&]+)/);
     if(m){
-      var d=JSON.parse(decodeURIComponent(atob(m[1])));
-      load();
-      var found=false;
-      for(var i=0;i<DB.rels.length;i++)if(DB.rels[i].ticker===d.t){DB.active=DB.rels[i].id;found=true}
-      if(!found){var r={id:uid(),ticker:d.t,name:d.n||('$'+d.t),nameA:d.a||t('side_a'),nameB:d.b||t('side_b'),created:Date.now(),assessment:null,result:d.s?{score:d.s,verdict:d.v||'Hold',color:d.s<28?'#ff4d6d':d.s<45?'#ffbe0b':'#00d68f',desc:t('shared_from'),phase:'--',peScore:'--',cfScore:'--',volatility:'--',flags:[],flagTypes:[],klinePts:null,analysis:'',structT:[],breakdown:null}:null,positions:[],status:'none',joined:true};DB.rels.push(r);DB.active=r.id}
-      save();history.replaceState(null,'',location.pathname);
+      PENDING_JOIN = JSON.parse(decodeURIComponent(atob(m[1])));
+      history.replaceState(null,'',location.pathname);
     }
   }catch(e){}
 })();
+async function handlePendingJoin(){
+  if(!PENDING_JOIN) return;
+  var d = PENDING_JOIN; PENDING_JOIN = null;
+  for(var i=0;i<DB.rels.length;i++) if(DB.rels[i].ticker===d.t){ DB.active=DB.rels[i].id; save(); return }
+  if(BACKEND_READY){
+    var row=null;
+    try{ row = await apiGetByTicker(d.t) }catch(e){}
+    if(row){
+      var fresh = await apiRefreshRel(row.id);
+      fresh.earned = await apiEarnedRoles(row.id);
+      DB.rels.push(fresh); DB.active=fresh.id; save(); return;
+    }
+  }
+  var r={id:uid(),ticker:d.t,name:d.n||('$'+d.t),nameA:d.a||t('side_a'),nameB:d.b||t('side_b'),
+    created:Date.now(),result:d.s?{score:d.s,verdict:d.v||'Hold',
+      color:d.s<28?'#ff4d6d':d.s<45?'#ffbe0b':'#00d68f',desc:t('shared_from'),phase:'--',
+      peScore:'--',cfScore:'--',volatility:'--',flags:[],flagTypes:[],klinePts:null,
+      analysis:'',structT:[],breakdown:null}:null,
+    positions:[],lots:[],earned:{},status:'none',joined:true};
+  DB.rels.push(r); DB.active=r.id; save();
+}
 
 /* ═══ DETAIL ═══ */
 function renderDT(){
@@ -520,10 +600,13 @@ function renderDT(){
   else pu.style.display='none';
   renderInsider(r,ms);
   renderActions(r);
-  var canShare=!r.joined&&r.status==='open';
+  var needAns = BACKEND_READY && !r.joined && r.status==='open' && !r.answersDone;
+  $('ans-card').style.display = needAns ? 'block' : 'none';
+  var canShare=!r.joined && r.status==='open' && (!BACKEND_READY || r.answersDone);
   $('share-bar').style.display=r.joined?'none':'block';
   $('sb-btn').style.display=canShare?'block':'none';
   $('share-lock').style.display=canShare?'none':'block';
+  if(needAns) $('share-lock').innerHTML=t('lock_answers');
   updBars(r);
   var hasChart=(r.result&&!closed)||closed||hasPos;
   $('dt-chartwrap').style.display=hasChart?'block':'none';
@@ -704,12 +787,16 @@ function updCalib(){
   $('cb-desc').textContent=posDesc(v);
   $('cb-pos').style.color=v>=85?'var(--y)':'var(--g)';
 }
-function confirmCalib(){
+async function confirmCalib(){
   var r=cur(),v=+$('cb-sl').value;
-  r.position=v;
-  r.posUnset=false;
-  if(r.lots&&r.lots.length)r.lots[0].size=v;
-  save();closeMo('calib');renderDT();setTimeout(drawDT,60);
+  if(BACKEND_READY){
+    try{ await apiCalib(r.id, v); await syncOne(r.id); }catch(e){ tst('保存失败'); return }
+  }else{
+    r.position=v; r.posUnset=false;
+    if(r.lots&&r.lots.length)r.lots[0].size=v;
+    save();
+  }
+  closeMo('calib');renderDT();setTimeout(drawDT,60);
   tst(t('ts_calib',{n:v}));
 }
 function posDesc(v){
@@ -725,15 +812,18 @@ function updOpenPos(){
   $('op-desc').textContent=posDesc(v);
   $('op-pos').style.color=v>=85?'var(--y)':'var(--g)';
 }
-function confirmOpen(){
+async function confirmOpen(){
   var r=cur(),pz=+$('op-sl').value;
-  r.status='open';
-  r.entryPrice=r.result.score;
-  r.entryTime=Date.now();
-  r.position=pz;
-  r.realized=0;
-  r.lots=[{price:r.result.score,ts:Date.now(),type:'open',size:pz}];
-  save();closeMo('open');renderDT();setTimeout(drawDT,60);
+  if(BACKEND_READY){
+    try{ await apiOpen(r.id, r.result.score, pz); await syncOne(r.id); r=cur(); }
+    catch(e){ tst('保存失败'); return }
+  }else{
+    r.status='open'; r.entryPrice=r.result.score; r.entryTime=Date.now();
+    r.position=pz; r.realized=0;
+    r.lots=[{price:r.result.score,ts:Date.now(),type:'open',size:pz}];
+    save();
+  }
+  closeMo('open');renderDT();setTimeout(drawDT,60);
   tst(t('ts_opened',{p:pz,e:r.entryPrice}));
 }
 function doAdd(){
@@ -756,14 +846,23 @@ function updAddPos(){
   $('ap-new').textContent=newEntry.toFixed(1);
   $('ap-new').style.color=newEntry>r.entryPrice?'var(--y)':'var(--g)';
 }
-function confirmAdd(){
+async function confirmAdd(){
   var r=cur(),add=+$('ap-sl').value,cp=r.position||0;
-  r.entryPrice=+((r.entryPrice*cp+r.result.score*add)/(cp+add)).toFixed(1);
-  r.position=cp+add;
-  if(!r.lots)r.lots=[];
-  r.lots.push({price:r.result.score,ts:Date.now(),type:'add',size:add});
-  if(OUTLOOK.ap){r.outlook=OUTLOOK.ap;OUTLOOK.ap=null;var oo=document.querySelectorAll('.ol-o[data-m="ap"]');for(var z=0;z<oo.length;z++)oo[z].classList.remove('on')}
-  save();closeMo('addpos');renderDT();setTimeout(drawDT,60);
+  var newEntry=+((r.entryPrice*cp+r.result.score*add)/(cp+add)).toFixed(1);
+  var newPos=cp+add, ol=OUTLOOK.ap;
+  if(BACKEND_READY){
+    try{ await apiAdd(r.id, r.result.score, add, newEntry, newPos, ol); await syncOne(r.id); r=cur(); }
+    catch(e){ tst('保存失败'); return }
+  }else{
+    r.entryPrice=newEntry; r.position=newPos;
+    if(!r.lots)r.lots=[];
+    r.lots.push({price:r.result.score,ts:Date.now(),type:'add',size:add});
+    if(ol)r.outlook=ol;
+    save();
+  }
+  OUTLOOK.ap=null;
+  var oo=document.querySelectorAll('.ol-o[data-m="ap"]');for(var z=0;z<oo.length;z++)oo[z].classList.remove('on');
+  closeMo('addpos');renderDT();setTimeout(drawDT,60);
   tst(t('ts_added',{a:add,p:r.position,e:r.entryPrice}));
 }
 function doCut(){
@@ -791,25 +890,28 @@ function updCutPos(){
   if(cp-cut<=0){w.style.display='block';w.innerHTML=t('cut_zero');}
   else w.style.display='none';
 }
-function confirmCut(){
+async function confirmCut(){
   var r=cur(),cut=+$('cp-sl').value,cp=r.position||0;
   var ms=mktSeries(r),now=ms?ms.price:r.result.score;
   var pnl=(isFinite(r.entryPrice)&&r.entryPrice>0)?((now-r.entryPrice)/r.entryPrice*cut):0;
   if(!isFinite(pnl))pnl=0;
-  r.realized=+((r.realized||0)+pnl).toFixed(1);
-  r.position=cp-cut;
-  if(!r.lots)r.lots=[];
-  r.lots.push({price:now,ts:Date.now(),type:'cut',size:cut,pnl:+pnl.toFixed(1)});
-  if(OUTLOOK.cp){r.outlook=OUTLOOK.cp;OUTLOOK.cp=null;var oc=document.querySelectorAll('.ol-o[data-m="cp"]');for(var z2=0;z2<oc.length;z2++)oc[z2].classList.remove('on')}
-  if(r.position<=0){
-    r.status='closed';r.closeTime=Date.now();
-    settlePositions(r);
-    save();closeMo('cutpos');renderDT();renderPD();setTimeout(drawDT,60);
-    tst(t('ts_zero'));
-    return;
+  var newRealized=+((r.realized||0)+pnl).toFixed(1), newPos=cp-cut, ol=OUTLOOK.cp;
+  if(BACKEND_READY){
+    try{ await apiCut(r.id, now, cut, newPos, +pnl.toFixed(1), newRealized, ol); await syncOne(r.id); r=cur(); }
+    catch(e){ tst('保存失败'); return }
+  }else{
+    r.realized=newRealized; r.position=newPos;
+    if(!r.lots)r.lots=[];
+    r.lots.push({price:now,ts:Date.now(),type:'cut',size:cut,pnl:+pnl.toFixed(1)});
+    if(ol)r.outlook=ol;
+    if(newPos<=0){ r.status='closed'; r.closeTime=Date.now(); settlePositions(r) }
+    save();
   }
-  save();closeMo('cutpos');renderDT();setTimeout(drawDT,60);
-  var c=0;for(var i=0;i<r.lots.length;i++)if(r.lots[i].type==='cut')c++;
+  OUTLOOK.cp=null;
+  var oc=document.querySelectorAll('.ol-o[data-m="cp"]');for(var z2=0;z2<oc.length;z2++)oc[z2].classList.remove('on');
+  closeMo('cutpos');renderDT();renderPD();setTimeout(drawDT,60);
+  if(newPos<=0){ tst(t('ts_zero')); return }
+  var c=0;for(var i=0;i<(r.lots||[]).length;i++)if(r.lots[i].type==='cut')c++;
   tst(c>=3?t('ts_cutn',{a:cut,n:c}):t('ts_cut',{a:cut,p:r.position}));
 }
 function doClose(){
@@ -818,11 +920,15 @@ function doClose(){
   if(r.status!=='open'){tst(t('ts_noopen'));return}
   $('cl-p').textContent=r.result?r.result.score:'--';openMo('close');
 }
-function confirmClose(){
+async function confirmClose(){
   var r=cur();
-  r.status='closed';r.closeTime=Date.now();
-  settlePositions(r);
-  save();closeMo('close');renderDT();renderPD();setTimeout(drawDT,60);
+  if(BACKEND_READY){
+    try{ await apiClose(r.id); await syncOne(r.id); }
+    catch(e){ tst('保存失败'); return }
+  }else{
+    r.status='closed'; r.closeTime=Date.now(); settlePositions(r); save();
+  }
+  closeMo('close');renderDT();renderPD();setTimeout(drawDT,60);
   tst(t('ts_closed'));
 }
 /* ═══ A3 · 平仓结算 ═══ */
@@ -922,6 +1028,12 @@ function afterRel(){
     tst(t('ts_earned'));
     return;
   }
+  if(BACKEND_READY && !r.answersDone){
+    closeMo('rel');
+    tst(t('ts_no_answers'));
+    return;
+  }
+  SESS.mode='guest';
   closeMo('rel');
   if(SESS.rel.self){
     DB.coins+=SESS.rel.base;
@@ -946,7 +1058,7 @@ function selWho(el){
   el.classList.add('sel');SESS.who=el.getAttribute('data-w');
   var n=$('who-nx');n.style.background='var(--pu)';n.style.color='#fff';n.disabled=false;
 }
-function startQuiz(){closeMo('who');SESS.qIdx=0;SESS.qSel=null;SESS.qSc={high:0,highMax:0,mid:0,midMax:0,low:0,lowMax:0};renderQ();openMo('quiz')}
+function startQuiz(){closeMo('who');SESS.qIdx=0;SESS.qSel=null;SESS.ans={};SESS.qSc={high:0,highMax:0,mid:0,midMax:0,low:0,lowMax:0};renderQ();openMo('quiz')}
 function renderQ(){
   var q=QS[SESS.qIdx],tot=QS.length,r=cur();
   var A=r?r.nameA:t('side_a'),B=r?r.nameB:t('side_b'),X=SESS.who==='A'?A:B;
@@ -964,31 +1076,77 @@ function renderQ(){
 function selQ(el){var o=document.querySelectorAll('#qop .qo');for(var i=0;i<o.length;i++)o[i].classList.remove('sel');el.classList.add('sel');SESS.qSel=parseInt(el.getAttribute('data-i'));var n=$('qnx');n.style.background='var(--g)';n.style.color='#000';n.disabled=false}
 function nextQ(){
   if(SESS.qSel===null)return;
-  var q=QS[SESS.qIdx],ms=WS[q.w]||2;
-  var pr={parent:.85,sibling:.78,bestfriend:.72,friend:.55,acquaintance:.3,third:.45}[SESS.rel.role]||.5;
-  var ok=q.w==='low'?true:Math.random()<pr;
-  SESS.qSc[q.w]+=ok?ms:0;SESS.qSc[q.w+'Max']+=ms;
-  if(SESS.qIdx<QS.length-1){SESS.qIdx++;SESS.qSel=null;renderQ()}else quizDone();
+  if(!SESS.ans)SESS.ans={};
+  SESS.ans['q'+(SESS.qIdx+1)] = SESS.qSel;      // 记录真实作答
+  if(SESS.qIdx<QS.length-1){SESS.qIdx++;SESS.qSel=null;renderQ()}
+  else if(SESS.mode==='owner') ownerAnswersDone();
+  else quizDone();
 }
-function quizDone(){
+async function quizDone(){
   closeMo('quiz');
-  var s=SESS.qSc,hm=s.highMax||1,mm=s.midMax||1,lm=s.lowMax||1;
-  var pct=Math.round((s.high+s.mid+s.low)/(hm+mm+lm)*100);
-  var wa=s.high/hm*.6+s.mid/mm*.3+s.low/lm*.1;
-  var earned=Math.round(SESS.rel.base*wa);
-  DB.coins+=earned;
-  var rr=cur();if(rr){if(!rr.earned)rr.earned={};rr.earned[SESS.rel.role]=earned;}
-  save();
+  var r=cur(), g=null;
+  if(BACKEND_READY){
+    try{ g = await apiGradeQuiz(r.id, SESS.who, SESS.ans); }catch(e){ g=null }
+  }
+  if(!g || !g.graded){
+    // 当事人还没设置标准答案 —— 诚实告知，不编分数
+    $('qr-p').textContent='—';
+    $('qr-lbl').textContent=t('nogr_lbl');
+    $('qr-c').textContent='0';
+    $('qr-r').textContent='';
+    $('qr-bd').innerHTML='<div style="font-size:11px;color:var(--y);line-height:1.7">'+t('nogr_text')+'</div>';
+    openMo('qres');
+    return;
+  }
+  var pct=g.accuracy|0;
+  var earned=Math.round(SESS.rel.base*(pct/100));
+  if(BACKEND_READY){
+    try{ await apiJoinRole(r.id, SESS.rel.role, SESS.who, earned, pct); }
+    catch(e){ if((''+e.message)==='DUP'){ tst(t('ts_earned')); return } }
+    await syncOne(r.id);
+  }else{
+    DB.coins+=earned;
+    if(!r.earned)r.earned={}; r.earned[SESS.rel.role]=earned; save();
+  }
   $('qr-p').textContent=pct+'%';$('qr-lbl').textContent=t('qr_acc');
-  $('qr-c').textContent=earned.toLocaleString();$('qr-r').textContent=RL[SESS.rel.role]||t('qr_role_fb');
+  $('qr-c').textContent=earned.toLocaleString();
+  $('qr-r').textContent=RL[SESS.rel.role]||t('qr_role_fb');
   $('qr-bd').innerHTML=
-    '<div class="qsr"><span class="qsl">'+t('qr_high')+'</span><span class="qsv" style="color:var(--g)">'+s.high+'/'+hm+'</span></div>'+
-    '<div class="qsr"><span class="qsl">'+t('qr_mid')+'</span><span class="qsv" style="color:var(--y)">'+s.mid+'/'+mm+'</span></div>'+
-    '<div class="qsr"><span class="qsl">'+t('qr_low')+'</span><span class="qsv" style="color:var(--t2)">'+s.low+'/'+lm+'</span></div>'+
+    '<div class="qsr"><span class="qsl">'+t('qr_high')+'</span><span class="qsv" style="color:var(--g)">'+g.high+'/'+g.high_max+'</span></div>'+
+    '<div class="qsr"><span class="qsl">'+t('qr_mid')+'</span><span class="qsv" style="color:var(--y)">'+g.mid+'/'+g.mid_max+'</span></div>'+
+    '<div class="qsr"><span class="qsl">'+t('qr_low')+'</span><span class="qsv" style="color:var(--t2)">'+g.low+'/'+g.low_max+'</span></div>'+
     '<div class="qsr"><span class="qsl" style="color:var(--t1);font-weight:600">'+t('qr_acc')+'</span><span class="qsv" style="color:var(--go);font-size:13px">'+pct+'%</span></div>';
   openMo('qres');
 }
 function finishEarn(){closeMo('qres');renderPD()}
+
+/* ═══ 标准答案 · 当事人填写 ═══ */
+function startOwnerAnswers(side){
+  var r=cur(); if(!r) return;
+  if(r.joined){ tst(t('owner_only')); return }
+  SESS.mode='owner'; SESS.who=side;
+  SESS.qIdx=0; SESS.qSel=null; SESS.ans={};
+  renderQ(); openMo('quiz');
+}
+function pickAnswerSide(){
+  var r=cur(); if(!r) return;
+  $('as-a').textContent=r.nameA;
+  $('as-b').textContent=r.nameB;
+  openMo('ansside');
+}
+async function ownerAnswersDone(){
+  closeMo('quiz');
+  var r=cur();
+  if(BACKEND_READY){
+    try{ await apiSaveAnswers(r.id, SESS.who, SESS.ans); await syncOne(r.id); }
+    catch(e){ tst('保存失败：'+((e&&e.message)||'')); SESS.mode=null; return }
+  }else{
+    r.answersDone=true; save();
+  }
+  SESS.mode=null;
+  renderDT();
+  tst(t('ts_answers_saved'));
+}
 
 /* ═══ A4 · 预测档案（本地版）═══ */
 function renderRecord(){
@@ -1078,16 +1236,22 @@ function updBet(){
   $('bi-r').textContent='+'+Math.round(a*1.8).toLocaleString()+' 🪙';
   $('bt-ok').style.opacity=a>0?'1':'.4';
 }
-function confirmBet(){
+async function confirmBet(){
   var r=cur(),a=SESS.amt;
   if(a<=0){tst(t('ts_needamt'));return}
   if(a>DB.coins)return;
-  DB.coins-=a;
-  var nm={self:t('self_role'),parent:t('anon_parent'),sibling:t('anon_sibling'),bestfriend:t('anon_bestfriend'),friend:t('anon_friend'),acquaintance:t('anon_acquaintance'),third:t('anon_third')};
-  var pos={name:nm[SESS.rel.role]||t('anon_default'),emoji:SESS.rel.emoji,role:SESS.rel.role,type:SESS.betType,amount:a,ts:Date.now()};
-  if(!r.positions)r.positions=[];
-  r.positions.push(pos);
-  save();closeMo('bet');renderPD();
+  if(BACKEND_READY){
+    try{ await apiBet(r.id, SESS.rel.role, SESS.betType, a); await syncOne(r.id); }
+    catch(e){ tst('下注失败：'+((e&&e.message)||'')); return }
+  }else{
+    DB.coins-=a;
+    var nm={parent:t('anon_parent'),sibling:t('anon_sibling'),bestfriend:t('anon_bestfriend'),friend:t('anon_friend'),acquaintance:t('anon_acquaintance'),third:t('anon_third')};
+    if(!r.positions)r.positions=[];
+    r.positions.push({name:nm[SESS.rel.role]||t('anon_default'),emoji:SESS.rel.emoji,
+      role:SESS.rel.role,type:SESS.betType,amount:a,ts:Date.now()});
+    save();
+  }
+  closeMo('bet');renderPD();
   tst(t(SESS.betType==='long'?'ts_bet_long':'ts_bet_short',{n:a.toLocaleString()}));
   setTimeout(function(){goTab('dt')},700);
 }
@@ -1402,15 +1566,53 @@ function showResult(R){
   var ix=0,tx=R.analysis;
   var ti=setInterval(function(){if(ix<tx.length){cu.parentNode.insertBefore(document.createTextNode(tx[ix]),cu);ix++}else{clearInterval(ti);cu.remove()}},12);
   var sn=document.querySelectorAll('.snav');for(var k=0;k<sn.length;k++)sn[k].classList.remove('on');
-  var sb=document.querySelectorAll('.sub');for(var m=0;m<sb.length;m++)sb[m].classList.remove('on');
+  var _sb=document.querySelectorAll('.sub');for(var m=0;m<_sb.length;m++)_sb[m].classList.remove('on');
   sn[1].classList.add('on');$('sub-rp').classList.add('on');$('scroll').scrollTop=0;
   tst(t('ts_assessdone'));
 }
 
 /* ═══ INIT ═══ */
-load();
-if(DB.rels.length&&!cur())DB.active=DB.rels[0].id;
-renderLabor();updStab();
+renderLabor();
+updStab();
 applyI18n();
-renderPF();
+
+(async function boot(){
+  var ok = await initBackend();
+  setNetBadge();
+
+  if(ok){
+    try{ localStorage.removeItem('lovetrade_v2') }catch(e){}   // 云端为准
+    DB={coins:0,rels:[],active:null};
+    await syncAll();
+    await handlePendingJoin();
+    if(DB.rels.length && !cur()) DB.active=DB.rels[0].id;
+  }else{
+    load();
+    await handlePendingJoin();
+    if(DB.rels.length && !cur()) DB.active=DB.rels[0].id;
+  }
+
+  renderPF();
+  if(cur()) { goTab('dt'); } else { goTab('pf'); }
+  watchActive();
+})();
+
+/* 订阅当前关系的实时变化 */
+var _watching = null;
+function watchActive(){
+  if(!BACKEND_READY) return;
+  var r = cur();
+  if(!r){ apiUnsubscribe(); _watching=null; return }
+  if(_watching === r.id) return;
+  _watching = r.id;
+  apiSubscribe(r.id, async function(kind, payload){
+    await syncOne(r.id);
+    if($('s-dt').classList.contains('on')){ renderDT(); setTimeout(drawDT,60) }
+    if($('s-pd').classList.contains('on')) renderPD();
+    if($('s-pf').classList.contains('on')) renderPF();
+    if(kind==='position') tst(t('rt_bet'));
+    else if(kind==='lot')  tst(t('rt_lot'));
+  });
+}
+
 window.addEventListener('resize',function(){if($('s-dt').classList.contains('on'))setTimeout(drawDT,60)});
