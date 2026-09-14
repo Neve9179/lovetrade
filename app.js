@@ -1370,8 +1370,11 @@ function laborStats(){
     byG.push({g:p(LABOR[i].g),me:gm,them:gt,even:ge,total:LABOR[i].items.length});
   }
   var ans=me+them+even;
-  var skew=ans?Math.round(Math.max(me,them)/ans*100):50;
-  return{me:me,them:them,even:even,answered:ans,skew:skew,heavier:me>=them?'me':'them',byG:byG};
+  var divided=me+them;
+  // 失衡度只看「分工明确」的部分：均衡项不该稀释失衡信号
+  var skew=divided?Math.round(Math.max(me,them)/divided*100):50;
+  return{me:me,them:them,even:even,answered:ans,divided:divided,
+         skew:skew,heavier:me>=them?'me':'them',byG:byG};
 }
 function updLaborResult(){
   var s=laborStats(),n=0;
@@ -1384,6 +1387,7 @@ function updLaborResult(){
   if(s.answered<5){box.style.display='none';return}
   box.style.display='block';
   var tot=s.answered,mw=Math.round(s.me/tot*100),tw=Math.round(s.them/tot*100),ew=100-mw-tw;
+    var div=s.me+s.them, skewMe=div?Math.round(s.me/div*100):50, skewThem=100-skewMe;
   var heavy=[],light=[];
   for(var k=0;k<s.byG.length;k++){var g=s.byG[k];
     if(g.me>g.them&&g.me>0)heavy.push(g.g+' '+g.me+'/'+g.total);
@@ -1392,8 +1396,9 @@ function updLaborResult(){
   if(s.skew>=70)warn='<div style="margin-top:8px;padding:8px 10px;background:var(--rd);border:1px solid rgba(255,77,109,.2);border-radius:8px;font-size:10px;color:var(--r);line-height:1.6">'+t('lab_warn',{n:s.skew})+'</div>';
   box.innerHTML=
     '<div style="font-size:9px;color:var(--t2);letter-spacing:1.5px;margin-bottom:8px">'+t('lab_answered',{n:s.answered})+'</div>'+
-    '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px"><span style="color:var(--g)">'+t('lab_me_n',{n:s.me})+'</span><span style="color:var(--t2)">'+t('lab_even_n',{n:s.even})+'</span><span style="color:var(--pu)">'+t('lab_them_n',{n:s.them})+'</span></div>'+
-    '<div class="lab-bar"><i style="width:'+mw+'%;background:var(--g);color:#000">'+(mw>12?mw+'%':'')+'</i><i style="width:'+ew+'%;background:var(--s3);color:var(--t2)">'+(ew>12?ew+'%':'')+'</i><i style="width:'+tw+'%;background:var(--pu);color:#fff">'+(tw>12?tw+'%':'')+'</i></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--g)">'+t('lab_me_n',{n:s.me})+'</span><span style="color:var(--pu)">'+t('lab_them_n',{n:s.them})+'</span></div>'+
+    '<div class="lab-bar"><i style="width:'+skewMe+'%;background:var(--g);color:#000">'+(skewMe>14?skewMe+'%':'')+'</i><i style="width:'+skewThem+'%;background:var(--pu);color:#fff">'+(skewThem>14?skewThem+'%':'')+'</i></div>'+
+    '<div style="font-size:9px;color:var(--t3);margin-top:4px">'+t('lab_even_note',{n:s.even})+'</div>'+
     (heavy.length?'<div style="font-size:10px;color:var(--t2);margin-top:6px;line-height:1.6"><span style="color:var(--g)">'+t('lab_heavy')+'</span>'+heavy.join(' · ')+'</div>':'')+
     (light.length?'<div style="font-size:10px;color:var(--t2);margin-top:3px;line-height:1.6"><span style="color:var(--pu)">'+t('lab_light')+'</span>'+light.join(' · ')+'</div>':'')+
     warn;
@@ -1401,8 +1406,11 @@ function updLaborResult(){
 function laborPenalty(){
   var s=laborStats();
   if(s.answered<5)return{pen:0,skew:50,stats:s};
+  if(s.divided<3)return{pen:0,skew:s.skew,stats:s};   // 分工项太少，不下判断
   if(s.skew<=50)return{pen:0,skew:s.skew,stats:s};
-  var pen=-Math.min(20,Math.round((s.skew-50)/10*3));
+  // 分工项占比越高，这个失衡越有分量
+  var weight=Math.min(1, s.divided/8);
+  var pen=-Math.round(Math.min(20,(s.skew-50)/10*3)*weight);
   return{pen:pen,skew:s.skew,stats:s};
 }
 
@@ -1411,13 +1419,15 @@ function labCard(R){
   var s=R.laborStats;
   if(s&&s.answered>=5){
     var tot=s.answered,mw=Math.round(s.me/tot*100),tw=Math.round(s.them/tot*100),ew=100-mw-tw;
+    var div=s.me+s.them, skewMe=div?Math.round(s.me/div*100):50, skewThem=100-skewMe;
     var heavy=[],light=[];
     for(var k=0;k<s.byG.length;k++){var g=s.byG[k];
       if(g.me>g.them&&g.me>0)heavy.push(g.g+' '+g.me+'/'+g.total);
       if(g.them>g.me&&g.them>0)light.push(g.g+' '+g.them+'/'+g.total)}
     out+='<div class="ac"><div class="act">'+t('lab_card')+'</div>'+
-      '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px"><span style="color:var(--g)">'+t('lab_me_n',{n:s.me})+'</span><span style="color:var(--t2)">'+t('lab_even_n',{n:s.even})+'</span><span style="color:var(--pu)">'+t('lab_them_n',{n:s.them})+'</span></div>'+
-      '<div class="lab-bar"><i style="width:'+mw+'%;background:var(--g);color:#000">'+(mw>12?mw+'%':'')+'</i><i style="width:'+ew+'%;background:var(--s3);color:var(--t2)">'+(ew>12?ew+'%':'')+'</i><i style="width:'+tw+'%;background:var(--pu);color:#fff">'+(tw>12?tw+'%':'')+'</i></div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--g)">'+t('lab_me_n',{n:s.me})+'</span><span style="color:var(--pu)">'+t('lab_them_n',{n:s.them})+'</span></div>'+
+      '<div class="lab-bar"><i style="width:'+skewMe+'%;background:var(--g);color:#000">'+(skewMe>14?skewMe+'%':'')+'</i><i style="width:'+skewThem+'%;background:var(--pu);color:#fff">'+(skewThem>14?skewThem+'%':'')+'</i></div>'+
+    '<div style="font-size:9px;color:var(--t3);margin-top:4px">'+t('lab_even_note',{n:s.even})+'</div>'+
       (heavy.length?'<div style="font-size:10px;color:var(--t2);margin-top:6px;line-height:1.6"><span style="color:var(--g)">'+t('lab_heavy')+'</span>'+heavy.join(' · ')+'</div>':'')+
       (light.length?'<div style="font-size:10px;color:var(--t2);margin-top:3px;line-height:1.6"><span style="color:var(--pu)">'+t('lab_light')+'</span>'+light.join(' · ')+'</div>':'')+
       (R.laborSkew>=70?'<div style="margin-top:8px;padding:8px 10px;background:var(--rd);border:1px solid rgba(255,77,109,.2);border-radius:8px;font-size:10px;color:var(--r);line-height:1.6">'+t('lab_warn',{n:R.laborSkew})+'</div>':'')+
