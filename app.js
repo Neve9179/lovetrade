@@ -54,7 +54,7 @@ function rerenderAll(){
 var I18N={zh:{},en:{}};
 
 I18N.zh={
- lab_me:'我',lab_them:'对方',lab_even:'差不多',
+ lab_me:'我',lab_them:'对方',lab_even:'差不多',own_you:'你',
  verdict_liq:'立即平仓 — 止损触发',verdict_red:'减持，保护剩余资本',verdict_hold:'持有，密切观察',verdict_buy:'高确信度持仓',
  phase_crash:'崩盘',phase_bear:'熊市',phase_range:'震荡',phase_bull:'牛市',
  sig:'交易信号',score_pe:'认知对等 PE',score_cf:'财务协同 CF',score_vol:'波动率 VOL',
@@ -94,7 +94,7 @@ I18N.zh={
  rec_detail:'{r} 次判断正确 · {w} 次判断错误 · 做多 {l} / 做空 {s}',
  q_high:'高权重 · 60%',q_mid:'中权重 · 30%',q_low:'低权重 · 10%',
  q_next:'下一题 →',q_result:'查看结果 →',
- qr_high:'高权重题（Q1-Q10）',qr_mid:'中权重题（Q11-Q17）',qr_low:'低权重题（Q18-Q20）',qr_acc:'综合准确率',
+ qr_high:'高权重题（Q1-Q10）',qr_mid:'中权重题（Q11-Q16）',qr_low:'低权重题（Q17-Q19）',qr_acc:'综合准确率',
  who_a:'{n} — 我对ta了解更多',who_b:'{n} — 我对ta了解更多',
  earn_hint:'每个身份在每段关系里只能领取一次硬币',earn_hint_n:'已在这段关系领取 {n} 个身份的硬币 · 每个身份仅限一次',
  pf_sub:'{n} 段关系 · {m} 段已评估 · 🪙 {c}',pf_empty_t:'持仓为空',pf_empty_s:'创建一段情感持仓开始<br>给它一个代号',
@@ -161,7 +161,7 @@ I18N.zh={
  sn_closet:'未出柜张力作为背景压力。',sn_labor:'性别化劳动负担已纳入计算。',sn_hostile:'敌对环境：安全本身是市场条件。',sn_marry:'时间线压力扭曲理性决策。'
 };
 I18N.en={
- lab_me:'Me',lab_them:'Them',lab_even:'Even',
+ lab_me:'Me',lab_them:'Them',lab_even:'Even',own_you:'you',
  verdict_liq:'Liquidate now — stop-loss triggered',verdict_red:'Reduce, protect remaining capital',verdict_hold:'Hold, watch closely',verdict_buy:'High-conviction position',
  phase_crash:'Crash',phase_bear:'Bear',phase_range:'Range',phase_bull:'Bull',
  sig:'SIGNAL',score_pe:'PARITY PE',score_cf:'FIN SYNC CF',score_vol:'VOLATILITY',
@@ -201,7 +201,7 @@ I18N.en={
  rec_detail:'{r} correct · {w} wrong · {l} long / {s} short',
  q_high:'HIGH WEIGHT · 60%',q_mid:'MID WEIGHT · 30%',q_low:'LOW WEIGHT · 10%',
  q_next:'Next →',q_result:'See result →',
- qr_high:'High weight (Q1-Q10)',qr_mid:'Mid weight (Q11-Q17)',qr_low:'Low weight (Q18-Q20)',qr_acc:'Overall accuracy',
+ qr_high:'High weight (Q1-Q10)',qr_mid:'Mid weight (Q11-Q16)',qr_low:'Low weight (Q17-Q19)',qr_acc:'Overall accuracy',
  who_a:'{n} — I know them better',who_b:'{n} — I know them better',
  earn_hint:'Each role can claim coins only once per relationship',earn_hint_n:'{n} role(s) claimed here · one claim per role',
  pf_sub:'{n} relationships · {m} assessed · 🪙 {c}',pf_empty_t:'No positions',pf_empty_s:'Create your first position<br>and give it a ticker',
@@ -377,26 +377,25 @@ var RLM={self:['当事人 👑','Insider 👑'],parent:['父母/长辈','Parent 
 var RL=new Proxy({},{get:function(o,k){return RLM[k]?p(RLM[k]):undefined}});
 
 var QS=[
-{w:'high',q:['{X}在亲密关系里最典型的依恋模式是？',"What is {X}'s typical attachment style?"],sub:['根据你对ta的了解判断','Based on what you know about them'],opts:[['安全型 — 稳定、信任、能良好处理分离','Secure — stable, trusting, handles separation well'],['焦虑型 — 害怕被抛弃、需要频繁确认','Anxious — fears abandonment, needs reassurance'],['回避型 — 情感钝感、倾向于保持距离','Avoidant — emotionally distant, keeps space'],['恐惧型 — 既渴望亲密又害怕受伤','Fearful — craves closeness but fears being hurt']]},
-{w:'high',q:['{X}的原生家庭留下的最主要影响是？',"What did {X}'s family of origin leave them with?"],sub:['选择最接近实际情况的答案','Pick what is closest to reality'],opts:[['情感忽视 — 父母在情感上不在场','Emotional neglect — parents absent emotionally'],['高压控制 — 习惯了被管控或反抗管控','Control — used to being managed, or resisting it'],['冲突环境 — 见证过激烈的家庭矛盾','Conflict — witnessed intense family fighting'],['相对健康 — 没有明显的家庭创伤','Relatively healthy — no obvious family trauma']]},
-{w:'high',q:['在这段感情里，{X}最渴望得到的是？','In this relationship, what does {X} most want?'],sub:['选择最能描述核心需求的选项','Pick the option closest to their core need'],opts:[['被深度理解，不需要解释自己','To be deeply understood without explaining themselves'],['稳定的安全感，知道对方不会离开','Security — knowing the other will not leave'],['持续的激情与新鲜感','Ongoing passion and novelty'],['有人陪着一起成长和进步','Someone to grow alongside'],['伴侣作为某种需求的满足来源——情感支撑、经济依托、社交需要或其他','A partner as a source of need-fulfillment — emotional support, financial security, social standing or otherwise']]},
-{w:'high',q:['{X}对亲密关系最深的恐惧是？',"What is {X}'s deepest fear about intimacy?"],sub:['选择最能描述内心恐惧的选项','Pick what best describes their inner fear'],opts:[['被抛弃或被替代','Being abandoned or replaced'],['在关系里失去自我','Losing themselves in the relationship'],['被控制或窒息','Being controlled or suffocated'],['付出了却得不到对等的回应','Giving without getting anything back']]},
-{w:'high',q:['亲密关系在{X}生活里的位置是？',"Where does intimacy rank in {X}'s life?"],sub:['根据平时的状态和行为判断','Based on their usual behavior'],opts:[['排第一，是生活的核心','First — the center of their life'],['很重要，但不是唯一','Important, but not everything'],['事业/个人目标优先，感情是加分项','Career first; love is a bonus'],['习惯独立，不太依赖亲密关系','Independent, not reliant on relationships']]},
-{w:'high',q:['在感情里，{X}通常是哪种角色？','What role does {X} usually play?'],sub:['观察在关系中的行为模式','Observe their pattern in the relationship'],opts:[['付出更多的那个，容易委屈自己','The one who gives more, often at their own cost'],['接受更多的那个，有时候不自知','The one who receives more, sometimes unaware'],['比较平衡，能清楚表达需求','Balanced, communicates needs clearly'],['忽冷忽热，状态不稳定','Hot and cold, inconsistent']]},
-{w:'high',q:['{X}在情绪低谷时，最需要对方做什么？','When {X} is low, what do they need most?'],sub:['回想遇到困难时的反应','Recall how they react to hard times'],opts:[['主动靠近，给予安慰和拥抱','Closeness — comfort and reassurance'],['给空间，独处消化','Space to process alone'],['帮忙解决问题，给出实际建议','Practical help and concrete advice'],['什么都不用做，只要在就好','Nothing — just be there']]},
-{w:'high',q:['以下哪一项最接近{X}在感情里的绝对底线？',"Which is closest to {X}'s absolute dealbreaker?"],sub:['最可能导致提出分手的情况','What would most likely end it for them'],opts:[['任何形式的欺骗或隐瞒','Any form of deceit or concealment'],['情感冷漠或长期被忽视','Emotional coldness or chronic neglect'],['被限制自由或过度控制','Restricted freedom or excessive control'],['在外人面前被贬低或不被维护','Being belittled or unsupported in public']]},
-{w:'high',q:['从过去的感情经历看，{X}倾向于？','Based on past relationships, {X} tends to?'],sub:['根据过往经历判断','Based on their history'],opts:[['投入很深，分手后很难走出来','Invests deeply, struggles to move on'],['理性断舍离，能相对快速恢复','Cuts clean, recovers relatively fast'],['反复拉锯，容易与前任藕断丝连','Back and forth, lingering ties with exes'],['很少认真谈感情，这次比较特别','Rarely serious about love; this one is different']]},
-{w:'high',q:['你观察到{X}在这段感情里的真实状态是？',"What is {X}'s real state in this relationship?"],sub:['抛开嘴上说的，说说你真实观察到的','Set aside what they say — what do you observe'],opts:[['比以前更好了，明显更快乐','Better than before, visibly happier'],['差不多，没什么变化','About the same'],['有些消耗，但本人说没事','Somewhat drained, though they say it is fine'],['明显变差了，但还在坚持','Clearly worse, but still holding on']]},
-{w:'mid',q:['你观察到他们最常见的冲突模式是？','What is their most common conflict pattern?'],sub:['根据你亲眼见过或听说的情况','Based on what you have seen or heard'],opts:[['一方追着沟通，另一方回避逃跑','One pursues, the other withdraws'],['两个人都会爆发，但冷静后能和好','Both blow up, then reconcile'],['表面平静，但有明显的冷战和隔阂','Calm on the surface, cold war underneath'],['几乎很少正面冲突','Almost never fight openly']]},
-{w:'mid',q:['谁更多地在维系这段关系的运转？','Who does more to keep this relationship running?'],sub:['谁在更多地主动沟通、照顾和推进','Who initiates, cares and pushes things forward'],opts:[['{A}明显付出更多','{A} clearly gives more'],['{B}明显付出更多','{B} clearly gives more'],['比较平衡','Fairly balanced'],['很难判断，他们不太展示','Hard to tell, they do not show much']]},
-{w:'mid',q:['他们有没有讨论过共同的未来？','Have they discussed a shared future?'],sub:['比如同居、结婚、定居城市等','Living together, marriage, where to settle'],opts:[['有明确规划，且有具体行动','Concrete plans with real steps taken'],['聊过但很模糊，没有具体行动','Talked about it vaguely, no action'],['没有聊过，或一方回避这个话题','Never discussed, or one avoids it'],['不清楚','Not sure']]},
-{w:'mid',q:['面对家庭或外部压力时，他们会？','Facing family or external pressure, they?'],sub:['比如父母反对、工作压力、经济困难','Parental disapproval, work stress, money trouble'],opts:[['站在彼此这边，一起应对','Stand together and handle it as a team'],['各自应付各自的，没有明显协同','Deal with it separately, little coordination'],['有时因外部压力内部产生裂缝','External pressure sometimes cracks them internally'],['不清楚，没见过他们处理这类情况','Not sure, never seen them handle this']]},
-{w:'mid',q:['自从在一起，{X}的整体状态？','Since getting together, how is {X} overall?'],sub:['综合情绪、精力、生活状态来看','Considering mood, energy and daily life'],opts:[['变好了，更有活力和安全感','Better — more energy and security'],['没什么变化','No real change'],['有些消耗，但偶尔也有好的状态','Somewhat drained, with good stretches'],['明显变差了，但还在坚持','Clearly worse, but still holding on']]},
-{w:'mid',q:['如果{X}问你的意见，你会？','If {X} asked your opinion, you would?'],sub:['说说你真实的内心想法','What you actually think'],opts:[['真心支持，我觉得他们挺合适的','Genuinely supportive — I think they fit well'],['支持，但有些担忧说不太清楚','Supportive, with concerns I cannot quite name'],['不太支持，但我没有直接说','Not really supportive, but I have not said so'],['明确不支持，我已经表达过了','Openly unsupportive, and I have said so']]},
-{w:'mid',q:['在你看来，他们在一起的核心驱动是？','What really holds them together?'],sub:['剥开表面，最根本的原因','Beneath the surface, the root reason'],opts:[['真实的情感连接和价值观匹配','Real connection and shared values'],['习惯和惰性，分开成本太高','Habit and inertia — leaving costs too much'],['相互需要，但不一定是真正的爱','Mutual need, not necessarily love'],['其中一方比另一方投入多很多','One is far more invested than the other']]},
-{w:'low',q:['他们是怎么认识的？','How did they meet?'],sub:['选择最接近实际情况的答案','Pick what is closest to reality'],opts:[['通过朋友介绍','Through friends'],['在学校或工作中认识','At school or work'],['通过社交软件或约会平台','Dating app or social media'],['在某个活动或特定场合偶遇','At an event or by chance']]},
-{w:'low',q:['他们在一起多久了？','How long have they been together?'],sub:['根据你的了解估计','Your best estimate'],opts:[['不到6个月','Under 6 months'],['6个月到1年','6 months to 1 year'],['1到3年','1 to 3 years'],['3年以上','Over 3 years']]},
-{w:'low',q:['你认为五年后他们还会在一起吗？','Will they still be together in five years?'],sub:['这也是你进入预测市场前的最后一题','Your last question before entering the market'],opts:[['会，我觉得他们能走到最后','Yes — I think they will go the distance'],['可能会，但有变数','Maybe, but it could go either way'],['不太可能，问题比较根本','Unlikely — the problems run deep'],['肯定不会，我非常确定','Definitely not — I am certain']]}
+{w:'high',q:['{X}在亲密关系里最典型的依恋模式是？',"What is {X}'s typical attachment style?"],sub:['根据你对ta的了解判断','Based on what you know about them'],opts:[['安全型 — 稳定、信任、能良好处理分离','Secure — stable, trusting, handles separation well'],['焦虑型 — 害怕被抛弃、需要频繁确认','Anxious — fears abandonment, needs reassurance'],['回避型 — 情感钝感、倾向于保持距离','Avoidant — emotionally distant, keeps space'],['恐惧型 — 既渴望亲密又害怕受伤','Fearful — craves closeness but fears being hurt']],qo:['你在亲密关系里最典型的依恋模式是？',"What is your typical attachment style?"],subo:['选择最贴近你自己的描述',"Pick what fits you best"]},
+{w:'high',q:['{X}的原生家庭留下的最主要影响是？',"What did {X}'s family of origin leave them with?"],sub:['选择最接近实际情况的答案','Pick what is closest to reality'],opts:[['情感忽视 — 父母在情感上不在场','Emotional neglect — parents absent emotionally'],['高压控制 — 习惯了被管控或反抗管控','Control — used to being managed, or resisting it'],['冲突环境 — 见证过激烈的家庭矛盾','Conflict — witnessed intense family fighting'],['相对健康 — 没有明显的家庭创伤','Relatively healthy — no obvious family trauma']],qo:['你的原生家庭留下的最主要影响是？',"What did your family of origin leave you with?"],subo:['选择最接近实际情况的答案',"Pick what is closest to reality"]},
+{w:'high',q:['在这段感情里，{X}最渴望得到的是？','In this relationship, what does {X} most want?'],sub:['选择最能描述核心需求的选项','Pick the option closest to their core need'],opts:[['被深度理解，不需要解释自己','To be deeply understood without explaining themselves'],['稳定的安全感，知道对方不会离开','Security — knowing the other will not leave'],['持续的激情与新鲜感','Ongoing passion and novelty'],['有人陪着一起成长和进步','Someone to grow alongside'],['伴侣作为某种需求的满足来源——情感支撑、经济依托、社交需要或其他','A partner as a source of need-fulfillment — emotional support, financial security, social standing or otherwise']],qo:['在这段感情里，你最渴望得到的是？',"In this relationship, what do you most want?"],subo:['选择最能描述你核心需求的选项',"Pick what is closest to your core need"]},
+{w:'high',q:['{X}对亲密关系最深的恐惧是？',"What is {X}'s deepest fear about intimacy?"],sub:['选择最能描述内心恐惧的选项','Pick what best describes their inner fear'],opts:[['被抛弃或被替代','Being abandoned or replaced'],['在关系里失去自我','Losing themselves in the relationship'],['被控制或窒息','Being controlled or suffocated'],['付出了却得不到对等的回应','Giving without getting anything back']],qo:['你对亲密关系最深的恐惧是？',"What is your deepest fear about intimacy?"],subo:['选择最能描述你内心恐惧的选项',"Pick what best describes your inner fear"]},
+{w:'high',q:['亲密关系在{X}生活里的位置是？',"Where does intimacy rank in {X}'s life?"],sub:['根据平时的状态和行为判断','Based on their usual behavior'],opts:[['排第一，是生活的核心','First — the center of their life'],['很重要，但不是唯一','Important, but not everything'],['事业/个人目标优先，感情是加分项','Career first; love is a bonus'],['习惯独立，不太依赖亲密关系','Independent, not reliant on relationships']],qo:['亲密关系在你生活里的位置是？',"Where does intimacy rank in your life?"],subo:['诚实评估它的优先级',"Be honest about the priority"]},
+{w:'high',q:['在感情里，{X}通常是哪种角色？','What role does {X} usually play?'],sub:['观察在关系中的行为模式','Observe their pattern in the relationship'],opts:[['付出更多的那个，容易委屈自己','The one who gives more, often at their own cost'],['接受更多的那个，有时候不自知','The one who receives more, sometimes unaware'],['比较平衡，能清楚表达需求','Balanced, communicates needs clearly'],['忽冷忽热，状态不稳定','Hot and cold, inconsistent']],qo:['在感情里，你通常是哪种角色？',"What role do you usually play?"],subo:['回想你在这段关系里的行为模式',"Recall your pattern in this relationship"]},
+{w:'high',q:['{X}在情绪低谷时，最需要对方做什么？','When {X} is low, what do they need most?'],sub:['回想遇到困难时的反应','Recall how they react to hard times'],opts:[['主动靠近，给予安慰和拥抱','Closeness — comfort and reassurance'],['给空间，独处消化','Space to process alone'],['帮忙解决问题，给出实际建议','Practical help and concrete advice'],['什么都不用做，只要在就好','Nothing — just be there']],qo:['你在情绪低谷时，最需要对方做什么？',"When you are low, what do you need most?"],subo:['想想你真正需要的是什么',"Think about what you actually need"]},
+{w:'high',q:['以下哪一项最接近{X}在感情里的绝对底线？',"Which is closest to {X}'s absolute dealbreaker?"],sub:['最可能导致提出分手的情况','What would most likely end it for them'],opts:[['任何形式的欺骗或隐瞒','Any form of deceit or concealment'],['情感冷漠或长期被忽视','Emotional coldness or chronic neglect'],['被限制自由或过度控制','Restricted freedom or excessive control'],['在外人面前被贬低或不被维护','Being belittled or unsupported in public']],qo:['以下哪一项最接近你在感情里的绝对底线？',"Which is closest to your absolute dealbreaker?"],subo:['什么情况会让你提出分手',"What would make you end it"]},
+{w:'high',q:['从过去的感情经历看，{X}倾向于？','Based on past relationships, {X} tends to?'],sub:['根据过往经历判断','Based on their history'],opts:[['投入很深，分手后很难走出来','Invests deeply, struggles to move on'],['理性断舍离，能相对快速恢复','Cuts clean, recovers relatively fast'],['反复拉锯，容易与前任藕断丝连','Back and forth, lingering ties with exes'],['很少认真谈感情，这次比较特别','Rarely serious about love; this one is different']],qo:['从你过去的感情经历看，你倾向于？',"Based on your past relationships, you tend to?"],subo:['根据你的过往判断',"Based on your own history"]},
+{w:'high',q:['你观察到{X}在这段感情里的真实状态是？',"What is {X}'s real state in this relationship?"],sub:['抛开嘴上说的，说说你真实观察到的','Set aside what they say — what do you observe'],opts:[['比以前更好了，明显更快乐','Better than before, visibly happier'],['差不多，没什么变化','About the same'],['有些消耗，但本人说没事','Somewhat drained, though they say it is fine'],['明显变差了，但还在坚持','Clearly worse, but still holding on']],qo:['你在这段感情里的真实状态是？',"What is your real state in this relationship?"],subo:['诚实一点，这份答案不会给任何人看',"Be honest — nobody else sees this"],opo:[['比以前更好了，明显更快乐','Better than before, visibly happier'],['差不多，没什么变化','About the same'],['有些消耗，但我对外说没事','Somewhat drained, though I tell others it is fine'],['明显变差了，但我还在坚持','Clearly worse, but I am still holding on']]},
+{w:'mid',q:['你观察到他们最常见的冲突模式是？','What is their most common conflict pattern?'],sub:['根据你亲眼见过或听说的情况','Based on what you have seen or heard'],opts:[['一方追着沟通，另一方回避逃跑','One pursues, the other withdraws'],['两个人都会爆发，但冷静后能和好','Both blow up, then reconcile'],['表面平静，但有明显的冷战和隔阂','Calm on the surface, cold war underneath'],['几乎很少正面冲突','Almost never fight openly']],qo:['你们最常见的冲突模式是？',"What is your most common conflict pattern?"],subo:['回想最近几次争吵',"Recall your recent arguments"]},
+{w:'mid',q:['谁更多地在维系这段关系的运转？','Who does more to keep this relationship running?'],sub:['谁在更多地主动沟通、照顾和推进','Who initiates, cares and pushes things forward'],opts:[['{A}明显付出更多','{A} clearly gives more'],['{B}明显付出更多','{B} clearly gives more'],['比较平衡','Fairly balanced'],['很难判断，他们不太展示','Hard to tell, they do not show much']],qo:['谁更多地在维系这段关系的运转？',"Who does more to keep this relationship running?"],subo:['谁在更多地主动沟通、照顾和推进',"Who initiates, cares and pushes things forward"],opo:[['{A}明显付出更多','{A} clearly gives more'],['{B}明显付出更多','{B} clearly gives more'],['比较平衡','Fairly balanced'],['说不好，我也没细想过','Hard to say, I have not really thought about it']]},
+{w:'mid',q:['他们有没有讨论过共同的未来？','Have they discussed a shared future?'],sub:['比如同居、结婚、定居城市等','Living together, marriage, where to settle'],opts:[['有明确规划，且有具体行动','Concrete plans with real steps taken'],['聊过但很模糊，没有具体行动','Talked about it vaguely, no action'],['没有聊过，或一方回避这个话题','Never discussed, or one avoids it'],['不清楚','Not sure']],qo:['你们有没有讨论过共同的未来？',"Have you discussed a shared future?"],subo:['比如同居、结婚、定居城市等',"Living together, marriage, where to settle"],opo:[['有明确规划，且有具体行动','Concrete plans with real steps taken'],['聊过但很模糊，没有具体行动','Talked about it vaguely, no action'],['没有聊过，或一方回避这个话题','Never discussed, or one of us avoids it'],['刻意没去想这件事','We deliberately avoid thinking about it']]},
+{w:'mid',q:['面对家庭或外部压力时，他们会？','Facing family or external pressure, they?'],sub:['比如父母反对、工作压力、经济困难','Parental disapproval, work stress, money trouble'],opts:[['站在彼此这边，一起应对','Stand together and handle it as a team'],['各自应付各自的，没有明显协同','Deal with it separately, little coordination'],['有时因外部压力内部产生裂缝','External pressure sometimes cracks them internally'],['不清楚，没见过他们处理这类情况','Not sure, never seen them handle this']],qo:['面对家庭或外部压力时，你们会？',"Facing family or external pressure, you two?"],subo:['比如父母反对、工作压力、经济困难',"Parental disapproval, work stress, money trouble"],opo:[['站在彼此这边，一起应对','We stand together and handle it as a team'],['各自应付各自的，没有明显协同','We deal with it separately, little coordination'],['有时因外部压力内部产生裂缝','External pressure sometimes cracks us internally'],['还没真正遇到过这种情况','We have not really faced this yet']]},
+{w:'mid',q:['自从在一起，{X}的整体状态？','Since getting together, how is {X} overall?'],sub:['综合情绪、精力、生活状态来看','Considering mood, energy and daily life'],opts:[['变好了，更有活力和安全感','Better — more energy and security'],['没什么变化','No real change'],['有些消耗，但偶尔也有好的状态','Somewhat drained, with good stretches'],['明显变差了，但还在坚持','Clearly worse, but still holding on']],qo:['自从在一起，你的整体状态？',"Since getting together, how are you overall?"],subo:['综合情绪、精力、生活状态来看',"Considering mood, energy and daily life"]},
+{w:'mid',q:['在你看来，他们在一起的核心驱动是？','What really holds them together?'],sub:['剥开表面，最根本的原因','Beneath the surface, the root reason'],opts:[['真实的情感连接和价值观匹配','Real connection and shared values'],['习惯和惰性，分开成本太高','Habit and inertia — leaving costs too much'],['相互需要，但不一定是真正的爱','Mutual need, not necessarily love'],['其中一方比另一方投入多很多','One is far more invested than the other']],qo:['在你看来，你们在一起的核心驱动是？',"What really holds you two together?"],subo:['剥开表面，最根本的原因',"Beneath the surface, the root reason"]},
+{w:'low',q:['他们是怎么认识的？','How did they meet?'],sub:['选择最接近实际情况的答案','Pick what is closest to reality'],opts:[['通过朋友介绍','Through friends'],['在学校或工作中认识','At school or work'],['通过社交软件或约会平台','Dating app or social media'],['在某个活动或特定场合偶遇','At an event or by chance']],qo:['你们是怎么认识的？',"How did you two meet?"],subo:['选择最接近实际情况的答案',"Pick what is closest to reality"]},
+{w:'low',q:['他们在一起多久了？','How long have they been together?'],sub:['根据你的了解估计','Your best estimate'],opts:[['不到6个月','Under 6 months'],['6个月到1年','6 months to 1 year'],['1到3年','1 to 3 years'],['3年以上','Over 3 years']],qo:['你们在一起多久了？',"How long have you been together?"],subo:['根据实际情况',"Actual duration"]},
+{w:'low',q:['你认为五年后他们还会在一起吗？','Will they still be together in five years?'],sub:['这也是你进入预测市场前的最后一题','Your last question before entering the market'],opts:[['会，我觉得他们能走到最后','Yes — I think they will go the distance'],['可能会，但有变数','Maybe, but it could go either way'],['不太可能，问题比较根本','Unlikely — the problems run deep'],['肯定不会，我非常确定','Definitely not — I am certain']],qo:['你认为五年后你们还会在一起吗？',"Will you still be together in five years?"],subo:['这份答案只有你自己知道',"Only you will see this answer"]}
 ];
 var WS={high:10,mid:6,low:2};
 
@@ -1066,10 +1065,15 @@ function renderQ(){
   var dp='';for(var i=0;i<tot;i++)dp+='<div class="qpd'+(i<SESS.qIdx?' done':'')+'"></div>';
   $('qpr').innerHTML=dp;
   var wm={high:{c:'qw-h',l:t('q_high')},mid:{c:'qw-m',l:t('q_mid')},low:{c:'qw-l',l:t('q_low')}}[q.w];
-  $('qwb').innerHTML='<div class="qw '+wm.c+'">Q'+(SESS.qIdx+1)+'/20 &nbsp;·&nbsp; '+wm.l+'</div>';
-  $('qt').textContent=p(q.q).replace(/\{X\}/g,X).replace(/\{A\}/g,A).replace(/\{B\}/g,B);
-  $('qs').textContent=p(q.sub);
-  var h='';for(var k=0;k<q.opts.length;k++){var op=p(q.opts[k]).replace(/\{X\}/g,X).replace(/\{A\}/g,A).replace(/\{B\}/g,B);h+='<div class="qo" data-i="'+k+'" onclick="selQ(this)">'+op+'</div>'}
+  $('qwb').innerHTML='<div class="qw '+wm.c+'">Q'+(SESS.qIdx+1)+'/'+QS.length+' &nbsp;·&nbsp; '+wm.l+'</div>';
+  var own = (SESS.mode==='owner');
+  var Q = (own && q.qo) ? p(q.qo) : p(q.q);
+  var S = (own && q.subo) ? p(q.subo) : p(q.sub);
+  if(own) X = t('own_you');
+  $('qt').textContent=Q.replace(/\{X\}/g,X).replace(/\{A\}/g,A).replace(/\{B\}/g,B);
+  $('qs').textContent=S;
+  var OPTS = (own && q.opo) ? q.opo : q.opts;
+  var h='';for(var k=0;k<OPTS.length;k++){var op=p(OPTS[k]).replace(/\{X\}/g,X).replace(/\{A\}/g,A).replace(/\{B\}/g,B);h+='<div class="qo" data-i="'+k+'" onclick="selQ(this)">'+op+'</div>'}
   $('qop').innerHTML=h;
   var n=$('qnx');n.style.background='var(--s3)';n.style.color='var(--t2)';n.disabled=true;
   n.textContent=SESS.qIdx<tot-1?t('q_next'):t('q_result');
@@ -1078,8 +1082,8 @@ function selQ(el){var o=document.querySelectorAll('#qop .qo');for(var i=0;i<o.le
 function nextQ(){
   if(SESS.qSel===null)return;
   if(!SESS.ans)SESS.ans={};
-  SESS.ans['q'+(SESS.qIdx+1)] = SESS.qSel;      // 记录真实作答
-  if(SESS.qIdx<QS.length-1){SESS.qIdx++;SESS.qSel=null;renderQ()}
+  SESS.ans['q'+(SESS.qIdx+1)] = SESS.qSel;
+  if(SESS.qIdx<QS.length-1){ SESS.qIdx++; SESS.qSel=null; renderQ(); }
   else if(SESS.mode==='owner') ownerAnswersDone();
   else quizDone();
 }
