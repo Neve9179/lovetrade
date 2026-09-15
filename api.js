@@ -67,6 +67,8 @@ function rowToRel(row, positions, lots){
     ownerId:row.owner_id, partnerId:row.partner_id,
     joined:(row.owner_id!==ME && row.partner_id!==ME),
     result:row.result||null,
+    form:row.form||null,
+    history:[],
     entryPrice:row.entry_price!=null ? +row.entry_price : undefined,
     position:row.position||0,
     realized:row.realized!=null ? +row.realized : 0,
@@ -133,10 +135,26 @@ async function apiRefreshRel(relId){
   var ls = await sb.from('lots').select('*').eq('rel_id', relId).order('created_at');
   return rowToRel(r.data, ps.data, ls.data);
 }
-async function apiSaveResult(relId, result){
-  await sb.from('relationships').update({
-    result:result, updated_at:new Date().toISOString()
-  }).eq('id', relId);
+async function apiSaveResult(relId, result, form){
+  var patch = { result:result, updated_at:new Date().toISOString() };
+  if(form) patch.form = form;
+  await sb.from('relationships').update(patch).eq('id', relId);
+}
+/* 每次评估存一条历史，不覆盖 */
+async function apiAddAssessment(relId, result, form){
+  var r = await sb.from('assessments').insert({
+    rel_id: relId,
+    score: result.score,
+    verdict: result.verdict,
+    pe: result.peScore, cf: result.cfScore, volatility: result.volatility,
+    result: result, form: form
+  });
+  if(r.error) console.warn('历史写入失败', r.error);
+}
+async function apiGetHistory(relId){
+  var r = await sb.from('assessments').select('id,score,verdict,pe,cf,volatility,created_at')
+    .eq('rel_id', relId).order('created_at');
+  return r.data || [];
 }
 
 async function apiDeleteRel(relId){

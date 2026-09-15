@@ -63,7 +63,13 @@ I18N.zh={
  rpt_title:'分析师报告',kline_title:'感情 K 线图',kline_cap:'基于你填写的事件时间线生成 · 非市场价格',
  disclaim:'⚠ 本工具提供情感资产风险评估，而非绝对真理。所有开仓/平仓操作均需在现实中手动执行。',
  back_dt:'← 返回详情页开仓',
- f_hardstop:'硬性止损已触发',f_volhi:'高波动率 · 市场易被小额资金推动',f_volmid:'中等波动率',f_vollo:'低波动率 · 抗舆论操纵',
+ f_hardstop:'硬性止损已触发',
+ cri_hd:'🔴 检测到高危信号',
+ cri_body:'这不是「关系问题」，这是伤害。<br>评分系统在这里没有意义 —— 无论其他指标看起来多好。<br><br>任何把这件事解释成「他只是脾气不好」「我也有错」的说法，都不成立。',
+ cri_help:'如果你需要帮助：<br><b>全国妇联维权服务热线 12338</b><br><b>紧急情况请拨 110</b><br><br>如果查看记录可能给你带来危险，记得清理浏览记录。',
+ cri_note:'⚠ 本次评估未生成分数。在存在人身安全风险的情况下，任何形式的量化权衡都是不恰当的。',
+ ctl_hd:'⚠️ 检测到控制型行为',
+ ctl_body:'这些行为往往是渐进的，而且常常以关心的形式出现，所以很难在当下认出来。<br><br>它们的共同点是：让你可支配的东西变少 —— 钱、社交、行动自由、对自己判断的信任。<br><br>下面的分数已被封顶，因为在这类结构里，其他指标的参考价值有限。',f_volhi:'高波动率 · 市场易被小额资金推动',f_volmid:'中等波动率',f_vollo:'低波动率 · 抗舆论操纵',
  f_negroi:'负ROI行为模式',f_llmatch:'爱语言高度匹配',f_llmiss:'爱语言错位',f_pe:'认知兼容性强',
  f_struct:'结构性风险溢价激活',f_gap:'情绪稳定性落差 {n} · 照顾者结构',f_labor:'情感劳动失衡 {n}%',f_laborsk:'情感劳动偏斜 {n}%',
  f_mktlong:'市场情绪：做多占优',f_mktshort:'市场情绪：做空占优',
@@ -106,7 +112,7 @@ I18N.zh={
  pred_none:'暂无预测 — 分享代号邀请朋友',pl_empty:'暂无持仓 — 成为第一个预测者',pl_ops:'{n} 次操作 · 累计 {a}🪙',pl_ops2:'{n} 次操作 · 累计投入 {a} 🪙',
  pl_net_long:'净多',pl_net_short:'净空',pl_op:'操作 {n}',pl_rev:'⚠️ 立场反转',
  pl_right:'✓ 判断正确 +{n}',pl_wrong:'✗ 判断错误',
- mkt_people:'{p} 人 / {o} 次',
+ mkt_people:'{p} 人 · {o} 次操作',sum_long:'{n} 人做多',sum_short:'{n} 人做空',sum_locked:'🔒 谁在做多、谁在做空、各自的了解程度 —— 解锁后可见',
  btn_assess:'去评估 →',btn_reassess_new:'重新评估开启新一轮 →',btn_open_at:'开仓 @{n}',btn_reassess:'重新评估',
  btn_add:'加仓',btn_add_full:'加仓（满仓）',btn_cut:'减仓',btn_close_pos:'平仓（清空 {n}% 仓位）',
  pu_text:'这段关系创建于「仓位」功能上线之前，当前的 <b id="pu-cur">{n}</b>% 是系统补的默认值，不是你的真实选择。请设置成你实际投入的程度。',
@@ -127,7 +133,7 @@ I18N.zh={
  ts_needamt:'请选择投入金额',ts_needevent:'请至少选择一个事件或填写描述',
  ts_copied:'链接已复制',ts_copiedcode:'代号已复制',ts_nocopy:'没有可复制的内容',ts_manualcopy:'请长按上方链接手动复制',
  ts_reset:'已清空全部数据',ts_selectrel:'请先选择一段关系',ts_selectrel2:'请先选择关系',
- ts_assessdone:'评估完成 · 可前往详情页开仓',ts_createfirst:'请先创建一段关系',
+ ts_assessdone:'评估完成 · 可前往详情页开仓',reassess_hint:'已回填上次评估的内容（{d}）。只改动变化的部分就行，不用重填。',ts_createfirst:'请先创建一段关系',
  confirm_reset:'这会清空所有关系、持仓和硬币记录，且无法恢复。确定继续吗？',confirm_del:'删除 {n} ？这段关系的评估、仓位和所有预测记录都会消失，无法恢复。',ts_deleted:'已删除',
  self_role:'当事人（本人）',anon_parent:'父母/长辈',anon_sibling:'兄弟姐妹',anon_bestfriend:'闺蜜/死党',
  anon_friend:'普通朋友',anon_acquaintance:'路人甲',anon_third:'神秘第三者 😈',anon_default:'匿名用户',
@@ -170,7 +176,13 @@ I18N.en={
  rpt_title:'ANALYST REPORT',kline_title:'RELATIONSHIP CHART',kline_cap:'Generated from your event timeline · not market price',
  disclaim:'⚠ This tool offers a risk assessment, not absolute truth. All open/close actions must be executed by you in real life.',
  back_dt:'← Back to detail to open a position',
- f_hardstop:'Hard stop-loss triggered',f_volhi:'High volatility · easily moved by small capital',f_volmid:'Moderate volatility',f_vollo:'Low volatility · resists manipulation',
+ f_hardstop:'Hard stop-loss triggered',
+ cri_hd:'🔴 HIGH-RISK SIGNAL DETECTED',
+ cri_body:'This is not a "relationship problem". This is harm.<br>Scoring has no meaning here — no matter how good the other indicators look.<br><br>Any framing that turns this into "he just has a temper" or "I played a part too" does not hold.',
+ cri_help:'If you need help:<br><b>Find your local domestic violence hotline</b><br><b>In an emergency, call your local emergency number</b><br><br>If being seen looking at this could put you at risk, remember to clear your history.',
+ cri_note:'⚠ No score was generated. Where physical safety is at risk, any form of quantified trade-off is inappropriate.',
+ ctl_hd:'⚠️ CONTROLLING BEHAVIOR DETECTED',
+ ctl_body:'These patterns are gradual, and they often arrive disguised as care — which is why they are hard to name in the moment.<br><br>What they share: the range of things you can freely decide keeps shrinking — money, friendships, movement, trust in your own judgment.<br><br>The score below has been capped, because in this kind of structure other indicators tell you little.',f_volhi:'High volatility · easily moved by small capital',f_volmid:'Moderate volatility',f_vollo:'Low volatility · resists manipulation',
  f_negroi:'Negative-ROI behavior pattern',f_llmatch:'Love languages aligned',f_llmiss:'Love language mismatch',f_pe:'Strong cognitive compatibility',
  f_struct:'Structural risk premium active',f_gap:'Stability gap {n} · caretaker structure',f_labor:'Labor imbalance {n}%',f_laborsk:'Labor skew {n}%',
  f_mktlong:'Sentiment: longs lead',f_mktshort:'Sentiment: shorts lead',
@@ -213,7 +225,7 @@ I18N.en={
  pred_none:'No predictions yet — share your ticker',pl_empty:'No positions yet — be the first',pl_ops:'{n} ops · {a}🪙 total',pl_ops2:'{n} ops · {a} 🪙 committed',
  pl_net_long:'Net long',pl_net_short:'Net short',pl_op:'Op {n}',pl_rev:'⚠️ Position reversed',
  pl_right:'✓ Correct +{n}',pl_wrong:'✗ Wrong',
- mkt_people:'{p} people / {o} ops',
+ mkt_people:'{p} people · {o} ops',sum_long:'{n} long',sum_short:'{n} short',sum_locked:'🔒 Who went long, who went short, and how well each knows you — unlock to see',
  btn_assess:'Go assess →',btn_reassess_new:'Reassess to start a new round →',btn_open_at:'Open @{n}',btn_reassess:'Reassess',
  btn_add:'Add',btn_add_full:'Add (full)',btn_cut:'Cut',btn_close_pos:'Close ({n}% position)',
  pu_text:'This relationship predates the position feature. The current <b id="pu-cur">{n}</b>% is a system default, not your choice. Please set your actual level of investment.',
@@ -234,7 +246,7 @@ I18N.en={
  ts_needamt:'Choose an amount',ts_needevent:'Select at least one event or write a description',
  ts_copied:'Link copied',ts_copiedcode:'Ticker copied',ts_nocopy:'Nothing to copy',ts_manualcopy:'Long-press the link above to copy',
  ts_reset:'All data cleared',ts_selectrel:'Select a relationship first',ts_selectrel2:'Select a relationship first',
- ts_assessdone:'Assessment done · open a position on the detail tab',ts_createfirst:'Create a relationship first',
+ ts_assessdone:'Assessment done · open a position on the detail tab',reassess_hint:'Your last assessment ({d}) has been restored. Just change what is different.',ts_createfirst:'Create a relationship first',
  confirm_reset:'This clears all relationships, positions and coins. It cannot be undone. Continue?',confirm_del:'Delete {n}? Its assessment, position and all predictions will be gone for good.',ts_deleted:'Deleted',
  self_role:'Insider (you)',anon_parent:'Parent / elder',anon_sibling:'Sibling',anon_bestfriend:'Best friend',
  anon_friend:'Friend',anon_acquaintance:'Acquaintance',anon_third:'Mystery third party 😈',anon_default:'Anonymous',
@@ -447,8 +459,6 @@ function renderPF(){
   for(var i=0;i<DB.rels.length;i++){(DB.rels[i].joined?obs:mine).push(DB.rels[i])}
   var scored=[];for(var j=0;j<mine.length;j++)if(mine[j].result)scored.push(mine[j].status==='closed'?0:mine[j].result.score);
   var avg=scored.length?Math.round(scored.reduce(function(a,b){return a+b},0)/scored.length):null;
-  $('pf-avg').textContent=avg===null?'--':avg;
-  $('pf-avg').style.color=avg===null?'var(--t1)':avg<28?'var(--r)':avg<45?'var(--y)':'var(--g)';
   $('pf-sub').textContent=DB.rels.length?t('pf_sub',{n:mine.length,m:scored.length,c:DB.coins.toLocaleString()}):t('pf_none');
   var L=$('rel-list');
   if(!DB.rels.length){L.innerHTML='<div class="empty-pf"><div style="font-size:30px;margin-bottom:10px">💼</div><div style="font-size:13px;font-weight:700;font-family:Syne,sans-serif;margin-bottom:5px">'+t('pf_empty_t')+'</div><div style="font-size:11px;line-height:1.6">'+t('pf_empty_s')+'</div></div>';return}
@@ -630,31 +640,49 @@ function renderDT(){
 function groupPos(ps){
   var map={},order=[];
   for(var i=0;i<ps.length;i++){
-    var p=ps[i],k=p.role;
-    if(!map[k]){map[k]={role:p.role,emoji:p.emoji,name:p.name,ops:[],net:0,total:0};order.push(k)}
+    var p=ps[i];
+    var k=p.actorId ? (p.actorId+'|'+p.role) : p.role;   // 同一个人的同一身份算一组
+    if(!map[k]){map[k]={role:p.role,emoji:p.emoji,name:p.name,actorId:p.actorId,ops:[],net:0,total:0};order.push(k)}
     map[k].ops.push(p);map[k].total+=p.amount;
-    map[k].net+=(p.type==='long'?1:-1)*p.amount*(p.weight||1);
+    map[k].net+=(p.type==='long'?1:-1)*p.amount;
   }
   var out=[];for(var j=0;j<order.length;j++)out.push(map[order[j]]);
   return out;
+}
+/* 真实参与人数：按 actorId 去重 */
+function countPeople(ps){
+  var s={},n=0;
+  for(var i=0;i<ps.length;i++){
+    var k=ps[i].actorId || ('anon'+i);
+    if(!s[k]){s[k]=1;n++}
+  }
+  return n;
 }
 function fmtTime(ts){var d=new Date(ts);return (d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
 function updBars(r){
   var lT=0,sT=0,rL=0,rS=0,ps=r.positions||[];
   for(var i=0;i<ps.length;i++){var p=ps[i],w=p.weight||1;if(p.type==='long'){lT+=p.amount*w;rL+=p.amount}else{sT+=p.amount*w;rS+=p.amount}}
   var tot=lT+sT||1,lp=Math.round(lT/tot*100);
-  $('dt-bl').style.width=lp+'%';$('dt-bl').textContent=t('bar_long',{n:lp});
-  $('dt-bs').style.width=(100-lp)+'%';$('dt-bs').textContent=t('bar_short',{n:(100-lp)});
-  var gs=groupPos(ps);
+  $('dt-bl').style.width=lp+'%';
+  $('dt-bl').textContent = lp>=18 ? t('bar_long',{n:lp}) : (lp>=8 ? lp+'%' : '');
+  $('dt-bs').style.width=(100-lp)+'%';
+  $('dt-bs').textContent = (100-lp)>=18 ? t('bar_short',{n:(100-lp)}) : ((100-lp)>=8 ? (100-lp)+'%' : '');
+  var people=countPeople(ps);
   $('dt-tc').textContent=(rL+rS).toLocaleString();
-  $('dt-pc').textContent=t('mkt_people',{p:gs.length,o:ps.length});
+  $('dt-pc').textContent=t('mkt_people',{p:people,o:ps.length});
   var L=$('dt-plist');
   if(!ps.length){L.innerHTML='<div style="text-align:center;padding:10px 0;font-size:10px;color:var(--t3)">'+t('pred_none')+'</div>';return}
-  var h='';
-  for(var k=0;k<gs.length;k++){var g=gs[k],last=g.ops.slice(-2).reverse();
-    h+='<div class="ppi"><div style="display:flex;align-items:center;gap:7px"><span style="font-size:14px">'+g.emoji+'</span><div><div style="color:var(--t1);font-size:10px">'+(RL[g.role]||'—')+'</div><div style="color:var(--t2);font-size:8px">'+t('pl_ops',{n:g.ops.length,a:g.total.toLocaleString()})+'</div></div></div><div style="display:flex;align-items:center;gap:5px"><span class="'+(g.net>=0?'bl':'bs')+'">'+(g.net>=0?t('pl_net_long'):t('pl_net_short'))+'</span></div></div>';
+  // 只给汇总，身份细节留给付费解锁
+  var nL=0,nS=0,seenL={},seenS={};
+  for(var i2=0;i2<ps.length;i2++){
+    var k2=ps[i2].actorId||('a'+i2);
+    if(ps[i2].type==='long'){ if(!seenL[k2]){seenL[k2]=1;nL++} }
+    else { if(!seenS[k2]){seenS[k2]=1;nS++} }
   }
-  L.innerHTML=h;
+  L.innerHTML='<div style="display:flex;justify-content:space-between;padding:8px 0 2px;font-size:11px">'+
+    '<span style="color:var(--g)">'+t('sum_long',{n:nL})+'</span>'+
+    '<span style="color:var(--r)">'+t('sum_short',{n:nS})+'</span></div>'+
+    '<div style="font-size:9px;color:var(--t3);line-height:1.6">'+t('sum_locked')+'</div>';
 }
 function divergenceNote(r,pos){
   if(!r.outlook)return'';
@@ -1438,6 +1466,26 @@ function laborPenalty(){
   return{pen:pen,skew:s.skew,stats:s};
 }
 
+function crisisCard(R){
+  if(R.hasCrisis){
+    var items=R.crisisList.map(function(x){return '<span>'+x+'</span>'}).join('');
+    return '<div class="crisis-card">'+
+      '<div class="crisis-hd">'+t('cri_hd')+'</div>'+
+      '<div class="crisis-items">'+items+'</div>'+
+      '<div class="crisis-body">'+t('cri_body')+'</div>'+
+      '<div class="crisis-help">'+t('cri_help')+'</div>'+
+      '</div>';
+  }
+  if(R.hasControl){
+    var it=R.controlList.map(function(x){return '<span>'+x+'</span>'}).join('');
+    return '<div class="control-card">'+
+      '<div class="control-hd">'+t('ctl_hd')+'</div>'+
+      '<div class="crisis-items">'+it+'</div>'+
+      '<div class="control-body">'+t('ctl_body')+'</div>'+
+      '</div>';
+  }
+  return '';
+}
 function labCard(R){
   var out='';
   var s=R.laborStats;
@@ -1470,10 +1518,32 @@ function labCard(R){
   return out;
 }
 /* ═══ ENGINE ═══ */
-function renderAN(){var r=cur();$('an-ctx').textContent=r?'$'+r.ticker:'--'}
+var _formLoadedFor = null;
+function renderAN(){
+  var r=cur();
+  $('an-ctx').textContent = r ? '$'+r.ticker : '--';
+  if(!r) return;
+  if(_formLoadedFor !== r.id){
+    _formLoadedFor = r.id;
+    if(r.form) restoreForm(r.form); else clearForm();
+  }
+  var b=$('reassess-hint');
+  if(b){
+    if(r.result && r.form){
+      b.style.display='block';
+      b.innerHTML=t('reassess_hint',{d:fmtDate(r.result.ts||r.created)});
+    }else b.style.display='none';
+  }
+}
+function fmtDate(ts){var d=new Date(ts);return (d.getMonth()+1)+'月'+d.getDate()+'日'}
 function isObs(){var r=cur();return !!(r&&r.joined)}
 function gv(id){return $(id).value}
 function gc(id){var e=document.querySelectorAll('#'+id+' .chip.on'),o=[];for(var i=0;i<e.length;i++){var v=parseInt(e[i].getAttribute('data-s'));if(!isNaN(v))o.push(v)}return o}
+function chipLabels(id){
+  var e=document.querySelectorAll('#'+id+' .chip.on'),o=[];
+  for(var i=0;i<e.length;i++)o.push(e[i].textContent.trim());
+  return o;
+}
 function gcT(id){var e=document.querySelectorAll('#'+id+' .chip.on'),o=[];for(var i=0;i<e.length;i++){var t=e[i].getAttribute('data-t');if(t)o.push(t)}return o}
 function genKLine(score,vol,trend,posS,negS,hardT,labor){
   var pts=[],n=30,price=Math.max(10,Math.min(95,score+15+Math.random()*10));
@@ -1492,13 +1562,63 @@ function genKLine(score,vol,trend,posS,negS,hardT,labor){
     pts.push({open:Math.max(2,Math.min(96,o)),high:Math.max(2,Math.min(97,Math.max(o,cl)+wH)),low:Math.max(1,Math.min(95,Math.min(o,cl)-wL)),close:Math.max(2,Math.min(96,cl))})}
   return pts;
 }
+/* ═══ 表单快照 · 存起来下次回填 ═══ */
+function snapForm(){
+  var chips={};
+  ['pos-c','neg-c','hard-c','hard-c2','hard-c3','soft-c','macro-c','struct-c'].forEach(function(id){
+    var e=document.querySelectorAll('#'+id+' .chip'),on=[];
+    for(var i=0;i<e.length;i++) if(e[i].classList.contains('on')) on.push(i);
+    chips[id]=on;
+  });
+  var sels={};
+  ['my-ll','my-at','th-ll','th-pe','dur','loc','pat','trend'].forEach(function(id){
+    var el=$(id); if(el) sels[id]=el.value;
+  });
+  return{
+    sels:sels, chips:chips,
+    pe:+gv('pe'), cf:+gv('cf'), stabA:+gv('stabA'), stabB:+gv('stabB'),
+    labor:JSON.parse(JSON.stringify(LAB)),
+    evt:$('evt').value
+  };
+}
+function restoreForm(f){
+  if(!f) return;
+  try{
+    if(f.sels) for(var k in f.sels){ var el=$(k); if(el) el.value=f.sels[k]; }
+    if(f.chips) for(var id in f.chips){
+      var e=document.querySelectorAll('#'+id+' .chip');
+      for(var i=0;i<e.length;i++) e[i].classList.remove('on');
+      (f.chips[id]||[]).forEach(function(i){ if(e[i]) e[i].classList.add('on') });
+    }
+    if(f.pe!=null){ $('pe').value=f.pe; $('pe-v').textContent=f.pe }
+    if(f.cf!=null){ $('cf').value=f.cf; $('cf-v').textContent=f.cf }
+    if(f.stabA!=null) $('stabA').value=f.stabA;
+    if(f.stabB!=null) $('stabB').value=f.stabB;
+    updStab();
+    if(f.labor){ LAB=JSON.parse(JSON.stringify(f.labor)); renderLabor(); }
+    if(f.evt!=null) $('evt').value=f.evt;
+  }catch(e){ console.warn('restoreForm',e) }
+}
+function clearForm(){
+  var cs=document.querySelectorAll('.chip.on');for(var i=0;i<cs.length;i++)cs[i].classList.remove('on');
+  $('pe').value=60;$('pe-v').textContent='60';
+  $('cf').value=55;$('cf-v').textContent='55';
+  $('stabA').value=60;$('stabB').value=60;updStab();
+  LAB={};renderLabor();
+  $('evt').value='';
+  ['my-ll','my-at','th-ll','th-pe'].forEach(function(id){$(id).selectedIndex=0});
+  $('dur').value='6to12';$('loc').value='samecity';$('pat').value='normal';$('trend').value='sideways';
+}
 function runEngine(){
   var r=cur();
   var myLL=gv('my-ll'),myAt=gv('my-at'),thLL=gv('th-ll'),thPe=gv('th-pe'),dur=gv('dur'),loc=gv('loc'),
     pe=+gv('pe'),cf=+gv('cf'),pat=gv('pat'),trend=gv('trend');
   var sA=+gv('stabA'),sB=+gv('stabB'),cs=combinedStab(sA,sB),stab=cs.val,stabGap=cs.gap;
   var LP=laborPenalty();
-  var posS=gc('pos-c'),negS=gc('neg-c'),hardS=gc('hard-c'),softS=gc('soft-c'),macroS=gc('macro-c'),structT=gcT('struct-c');
+  var posS=gc('pos-c'),negS=gc('neg-c'),softS=gc('soft-c'),macroS=gc('macro-c'),structT=gcT('struct-c');
+  var hardS=gc('hard-c').concat(gc('hard-c2'),gc('hard-c3'));
+  var crisisList=chipLabels('hard-c'), controlList=chipLabels('hard-c2');
+  var hasCrisis=crisisList.length>0, hasControl=controlList.length>0;
   var hasHard=hardS.length>0,llM=myLL===thLL?1.8:.6;
   var aM={secure:{p:1,n:1},anxious:{p:.8,n:1.5},avoidant:{p:.6,n:.6},fearful:{p:.5,n:1.8}}[myAt]||{p:1,n:1};
   var pM={supportive:1.3,neutral:1,competitive:.4,controlling:.2,avoidant_p:.7,volatile:.5}[thPe]||1;
@@ -1517,6 +1637,8 @@ function runEngine(){
   var gapPen=stabGap>40?-Math.min(10,Math.round((stabGap-40)*0.2)):0;
   var score=base+pT2+nT+hT+sT2+mT+labor+locM+LP.pen+gapPen;
   if(hasHard)score=Math.min(score,25);
+  if(hasControl)score=Math.min(score,18);
+  if(hasCrisis)score=4;
   var sVol=0,sNote='';
   function hs(t){return structT.indexOf(t)>=0}
   if(hs('lgbtq')){sVol+=15;sNote+=t('sn_lgbtq')}
@@ -1565,7 +1687,7 @@ function runEngine(){
     Hold:t('vt_hold',{s:score,pe:pe,cf:cf,ll:ll,an:an})+sl+pl,
     'Strong Buy':t('vt_buy',{s:score,pe:pe,cf:cf,v:vol,ll:ll,an:an})+sl+pl
   };
-  return{score:score,verdict:vd,emoji:em,desc:de,phase:ph,color:co,peScore:peS,cfScore:cfS,volatility:vol,flags:fl,flagTypes:ft,klinePts:kp,analysis:vt[vd]||vt.Hold,sNote:sNote,structT:structT,
+  return{score:score,verdict:vd,emoji:em,desc:de,phase:ph,color:co,peScore:peS,cfScore:cfS,volatility:vol,flags:fl,flagTypes:ft,klinePts:kp,analysis:vt[vd]||vt.Hold,sNote:sNote,structT:structT,hasCrisis:hasCrisis,crisisList:crisisList,hasControl:hasControl,controlList:controlList,
     breakdown:{base:Math.round(base),posTotal:Math.round(pT2),negTotal:Math.round(nT),hardTotal:hT,softTotal:sT2,macroTotal:Math.round(mT),labor:labor,laborPen:LP.pen,gapPen:gapPen},laborStats:LP.stats,laborSkew:LP.skew,stabA:sA,stabB:sB,stabGap:stabGap};
 }
 function startAn(){
@@ -1582,10 +1704,19 @@ function startAn(){
     var R=runEngine();
     r.result=R;
     if(r.status==='closed'){r.status='none';r.positions=[]}
+    var snap = snapForm();
+    r.form = snap;
     if(BACKEND_READY){
-      try{ await apiSaveResult(r.id, R); await syncOne(r.id); }
-      catch(e){ console.warn('保存评估失败',e); tst('评估保存失败，请重试'); }
-    }else{ save(); }
+      try{
+        await apiSaveResult(r.id, R, snap);
+        await apiAddAssessment(r.id, R, snap);
+        await syncOne(r.id);
+      }catch(e){ console.warn('保存评估失败',e); tst('评估保存失败，请重试'); }
+    }else{
+      if(!r.history)r.history=[];
+      r.history.push({score:R.score,verdict:R.verdict,ts:Date.now()});
+      save();
+    }
     renderPD(); showResult(R);
   },4000);
 }
@@ -1597,7 +1728,17 @@ function showResult(R){
   var rows=[[t('bd_base'),R.breakdown.base,R.breakdown.base>0?'#00d68f':'#ff4d6d'],[t('bd_pos'),R.breakdown.posTotal,'#00d68f'],[t('bd_neg'),R.breakdown.negTotal,'#ff4d6d'],[t('bd_hard'),R.breakdown.hardTotal||0,R.breakdown.hardTotal<0?'#ff4d6d':'#00d68f'],[t('bd_soft'),R.breakdown.softTotal||0,R.breakdown.softTotal<0?'#ffbe0b':'#00d68f'],[t('bd_macro'),R.breakdown.macroTotal||0,R.breakdown.macroTotal>=0?'#00d68f':'#ffbe0b'],[t('bd_labor'),R.breakdown.labor||0,R.breakdown.labor<0?'#ffbe0b':'#00d68f'],[t('bd_laborpen'),R.breakdown.laborPen||0,R.breakdown.laborPen<0?'#ff4d6d':'#00d68f'],[t('bd_gap'),R.breakdown.gapPen||0,R.breakdown.gapPen<0?'#ff4d6d':'#00d68f']];
   var bR='';for(var j=0;j<rows.length;j++){var rr=rows[j];bR+='<div class="brw"><span class="brl">'+rr[0]+'</span><span class="brv" style="color:'+rr[2]+'">'+(rr[1]>0?'+':'')+rr[1]+'</span></div>'}
   var sH=R.structT.length>0?'<div class="l5">'+t('l5')+(R.sNote||t('l5def'))+'</div>':'';
+  if(R.hasCrisis){
+    $('rpt').innerHTML = crisisCard(R) +
+      '<div class="dis">'+t('cri_note')+'</div>'+
+      '<button class="rst" onclick="goTab(\'dt\')">'+t('back_dt')+'</button><div style="height:6px"></div>';
+    var sn0=document.querySelectorAll('.snav');for(var k0=0;k0<sn0.length;k0++)sn0[k0].classList.remove('on');
+    var sb0=document.querySelectorAll('.sub');for(var m0=0;m0<sb0.length;m0++)sb0[m0].classList.remove('on');
+    sn0[1].classList.add('on');$('sub-rp').classList.add('on');$('scroll').scrollTop=0;
+    return;
+  }
   $('rpt').innerHTML=
+   crisisCard(R)+
    '<div class="vc" style="background:'+c+'10;border-color:'+c+'30"><div><div class="vcs" style="color:'+c+'">'+t('sig')+'</div><div class="vca" style="color:'+c+'">'+R.verdict+'</div><div class="vcd">'+R.desc+'</div></div><div class="vce">'+R.emoji+'</div></div>'+
    '<div class="sg"><div class="sc"><div class="scl">'+t('score_pe')+'</div><div class="scv" style="color:'+(R.peScore>60?'#00d68f':'#ff4d6d')+'">'+R.peScore+'</div></div><div class="sc"><div class="scl">'+t('score_cf')+'</div><div class="scv" style="color:'+(R.cfScore>60?'#00d68f':'#ff4d6d')+'">'+R.cfScore+'</div></div><div class="sc"><div class="scl">'+t('score_vol')+'</div><div class="scv" style="color:'+(R.volatility<40?'#00d68f':R.volatility<65?'#ffbe0b':'#ff4d6d')+'">'+R.volatility+'</div></div></div>'+
    '<div class="bk"><div class="bkt">'+t('bd_title')+'</div>'+bR+'<div class="brw" style="border-top:1px solid var(--b2);margin-top:3px"><span style="font-weight:700;color:var(--t1);font-size:10px">'+t('bd_total')+'</span><span style="color:'+c+';font-size:15px;font-weight:800;font-family:Syne,sans-serif">'+R.score+'</span></div></div>'+

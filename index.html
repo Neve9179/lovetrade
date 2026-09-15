@@ -18,8 +18,7 @@
   <div class="nav"><div class="nav-t" style="color:var(--g)">LoveTrade</div><div class="badge"><div class="dot"></div>LIVE</div></div>
   <div class="pf-hdr">
     <div class="pf-total-l" data-en="Portfolio Overview">情感持仓总览</div>
-    <div class="pf-total" id="pf-avg" style="color:var(--t1)">--</div>
-    <div class="pf-sub" id="pf-sub" data-en="No positions yet">还没有任何情感持仓</div>
+    <div class="pf-sub" id="pf-sub" style="margin-top:6px" data-en="No positions yet">还没有任何情感持仓</div>
   </div>
   <div id="rel-list"></div>
   <div class="add-rel" onclick="openMo('newrel')" data-en="+ &nbsp;New Relationship">+ &nbsp;新建关系资产</div>
@@ -80,6 +79,7 @@
   <div class="sub-nav"><button class="snav on" onclick="goSub('as',this)" data-en="Assess">评估</button><button class="snav" onclick="goSub('rp',this)" data-en="Report">报告</button></div>
   <div class="sub on" id="sub-as">
     <div id="a-form"><div class="fb">
+      <div id="reassess-hint" style="display:none;background:var(--gd);border:1px solid rgba(0,214,143,.22);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:10px;color:var(--g);line-height:1.6"></div>
       <div class="dv"><span data-en="YOUR PROFILE">你的画像</span></div>
       <div class="fg"><label class="fl" data-en="MY LOVE LANGUAGE">我的爱语言</label><div class="sw"><select class="rsel" id="my-ll"><option value="words" data-en="Words of affirmation">肯定的言辞</option><option value="time" data-en="Quality time">精心的时刻</option><option value="gifts" data-en="Receiving gifts">接受礼物</option><option value="service" data-en="Acts of service">服务的行为</option><option value="touch" data-en="Physical touch">身体接触</option></select></div></div>
       <div class="fg"><label class="fl" data-en="MY ATTACHMENT STYLE">我的依恋类型</label><div class="sw"><select class="rsel" id="my-at"><option value="secure" data-en="Secure">安全型</option><option value="anxious" data-en="Anxious">焦虑型</option><option value="avoidant" data-en="Avoidant">回避型</option><option value="fearful" data-en="Fearful">恐惧型</option></select></div></div>
@@ -115,11 +115,25 @@
       <div id="labor-mod"></div>
       <div id="labor-result" style="display:none;background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:12px;margin-bottom:12px"></div>
       <div class="dv"><span data-en="RISK FACTORS">风险因子</span></div>
-      <div class="fg"><label class="fl" data-en="HARD STOP-LOSS TRIGGERS">硬性止损触发器</label><div class="chips" id="hard-c">
-        <div class="chip d" data-s="-50" onclick="tc(this)" data-en="Physical violence / abuse">肢体暴力/家暴</div><div class="chip d" data-s="-45" onclick="tc(this)" data-en="Infidelity / repeated deceit">出轨/反复欺骗</div><div class="chip d" data-s="-40" onclick="tc(this)" data-en="Narcissistic / manipulative">自恋/操控型人格</div><div class="chip d" data-s="-35" onclick="tc(this)" data-en="Deliberately hid key information">蓄意隐瞒重要信息</div>
-      </div></div>
+      <div class="fg"><label class="fl" data-en="HARD STOP-LOSS TRIGGERS">硬性止损触发器</label>
+
+        <div class="hs-lv hs-crisis"><span data-en="Threats to your physical safety">危及人身安全</span></div>
+        <div class="chips" id="hard-c">
+          <div class="chip d crisis" data-s="-50" data-lv="crisis" onclick="tc(this)" data-en="Physical violence">肢体暴力</div><div class="chip d crisis" data-s="-50" data-lv="crisis" onclick="tc(this)" data-en="Sexual coercion / unwanted sex">性胁迫 / 违背意愿的性行为</div><div class="chip d crisis" data-s="-50" data-lv="crisis" onclick="tc(this)" data-en="Threats (to you, family, pets, or self-harm as leverage)">威胁恐吓</div>
+        </div>
+
+        <div class="hs-lv hs-control"><span data-en="Control and erosion">控制与侵蚀</span></div>
+        <div class="chips" id="hard-c2">
+          <div class="chip d" data-s="-42" data-lv="control" onclick="tc(this)" data-en="Financial control (limiting money, checking accounts, cutting income)">经济控制</div><div class="chip d" data-s="-42" data-lv="control" onclick="tc(this)" data-en="Emotional abuse (chronic belittling, humiliation, silent punishment)">精神暴力</div><div class="chip d" data-s="-42" data-lv="control" onclick="tc(this)" data-en="Gaslighting (denying your memory, making you doubt yourself)">煤气灯操纵</div><div class="chip d" data-s="-42" data-lv="control" onclick="tc(this)" data-en="Isolation (cutting you off from friends and family)">孤立</div><div class="chip d" data-s="-42" data-lv="control" onclick="tc(this)" data-en="Surveillance (phone checks, tracking, interrogating your whereabouts)">跟踪监视</div>
+        </div>
+
+        <div class="hs-lv hs-deceit"><span data-en="Deceit">欺骗</span></div>
+        <div class="chips" id="hard-c3">
+          <div class="chip d" data-s="-45" data-lv="deceit" onclick="tc(this)" data-en="Infidelity / repeated deceit">出轨/反复欺骗</div><div class="chip d" data-s="-35" data-lv="deceit" onclick="tc(this)" data-en="Deliberately hid key information (marriage, debt, illness)">蓄意隐瞒重要信息</div><div class="chip d" data-s="-40" data-lv="deceit" onclick="tc(this)" data-en="Narcissistic / manipulative">自恋/操控型人格</div>
+        </div>
+      </div>
       <div class="fg"><label class="fl" data-en="SOFT RISK FACTORS">软性风险因子</label><div class="chips" id="soft-c">
-        <div class="chip" data-s="-8" onclick="tc(this)" data-en="Unequal emotional labor">情感劳动不平等</div><div class="chip" data-s="-8" onclick="tc(this)" data-en="Unprocessed family trauma">原生家庭创伤</div><div class="chip" data-s="-7" onclick="tc(this)" data-en="Financial dependency imbalance">经济依赖不平衡</div><div class="chip" data-s="-7" onclick="tc(this)" data-en="Very different communication styles">沟通方式差异大</div><div class="chip" data-s="-6" onclick="tc(this)" data-en="Disagreement on marriage/children">对婚育的分歧</div><div class="chip" data-s="-6" onclick="tc(this)" data-en="Unresolved ex">与前任未处理清楚</div><div class="chip" data-s="-6" onclick="tc(this)" data-en="Friends do not approve">朋友圈不支持</div><div class="chip" data-s="-5" onclick="tc(this)" data-en="Habit friction">习惯差异摩擦</div><div class="chip" data-s="-5" onclick="tc(this)" data-en="Sexual incompatibility">性生活不协调</div><div class="chip" data-s="-5" onclick="tc(this)" data-en="Religious difference">宗教/信仰差异</div><div class="chip" data-s="-4" onclick="tc(this)" data-en="Large cultural gap">文化背景差异大</div><div class="chip" data-s="-4" onclick="tc(this)" data-en="Age-gap power imbalance">年龄差距权力落差</div><div class="chip" data-s="-4" onclick="tc(this)" data-en="Unaddressed mental health issue">心理健康问题未解决</div><div class="chip" data-s="-3" onclick="tc(this)" data-en="No overlapping social circles">社交圈不重叠</div><div class="chip" data-s="-3" onclick="tc(this)" data-en="Different needs for space">个人空间需求差异</div>
+        <div class="chip" data-s="-8" onclick="tc(this)" data-en="Unequal emotional labor">情感劳动不平等</div><div class="chip" data-s="-8" onclick="tc(this)" data-en="Unprocessed family trauma">原生家庭创伤</div><div class="chip" data-s="-7" onclick="tc(this)" data-en="Financial dependency imbalance">经济依赖不平衡</div><div class="chip" data-s="-7" onclick="tc(this)" data-en="Very different communication styles">沟通方式差异大</div><div class="chip" data-s="-6" onclick="tc(this)" data-en="Disagreement on marriage/children">对婚育的分歧</div><div class="chip" data-s="-6" onclick="tc(this)" data-en="Unresolved ex">与前任未处理清楚</div><div class="chip" data-s="-6" onclick="tc(this)" data-en="Friends do not approve">朋友圈不支持</div><div class="chip" data-s="-5" onclick="tc(this)" data-en="Habit friction">习惯差异摩擦</div><div class="chip" data-s="-5" onclick="tc(this)" data-en="Sexual incompatibility">性生活不协调</div><div class="chip" data-s="-5" onclick="tc(this)" data-en="Religious difference">宗教/信仰差异</div><div class="chip" data-s="-4" onclick="tc(this)" data-en="Large cultural gap">文化背景差异大</div><div class="chip" data-s="-4" onclick="tc(this)" data-en="Age-gap power imbalance">年龄差距权力落差</div><div class="chip" data-s="-4" onclick="tc(this)" data-en="Unaddressed mental health issue">心理健康问题未解决</div><div class="chip" data-s="-3" onclick="tc(this)" data-en="No overlapping social circles">社交圈不重叠</div><div class="chip" data-s="-3" onclick="tc(this)" data-en="Different needs for space">个人空间需求差异</div><div class="chip" data-s="-7" onclick="tc(this)" data-en="Career repeatedly talked down (&quot;you don&#39;t need to work so hard&quot;, &quot;let me support you&quot;)">事业发展被持续劝退</div><div class="chip" data-s="-6" onclick="tc(this)" data-en="My earning power is weaker than before we met">我的收入能力比在一起前更弱了</div>
       </div></div>
       <div class="dv"><span data-en="STRUCTURAL RISK · LAYER 5">结构性风险 · LAYER 5</span></div>
       <div class="fg"><label class="fl" data-en="IDENTITY & SOCIAL STRUCTURE">身份与社会结构因子</label><div class="chips" id="struct-c">
