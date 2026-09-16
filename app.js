@@ -64,6 +64,22 @@ I18N.zh={
  disclaim:'⚠ 本工具提供情感资产风险评估，而非绝对真理。所有开仓/平仓操作均需在现实中手动执行。',
  back_dt:'← 返回详情页开仓',
  f_hardstop:'硬性止损已触发',
+ sf_noscore:'本次评估未生成分数',sf_title:'这段关系无法开仓',
+ sf_lead:'LoveTrade 不会为存在暴力的关系建立持仓。这不是可以权衡的事。',
+ sf_held:'你此前的 {n}% 持仓记录会保留，但不再提供操作入口。',
+ sf_leaving_hd:'如果你在考虑离开',
+ sf_leaving:'离开的过程往往是风险最高的阶段。施暴者在失去控制时可能升级暴力。<br>这不是劝你留下，而是提醒你：走之前先有计划，比走得快更重要。',
+ sf_steps_hd:'可以先做的几件事',
+ sf_s1:'告诉一个信得过的人',
+ sf_s2:'留存伤情照片、就医记录、报警回执、聊天记录',
+ sf_s3:'准备一个能随时拿走的包（身份证、银行卡、钥匙、常用药）',
+ sf_s4:'想好一个可以立刻去的地方',
+ sf_res_hd:'可以用的资源',
+ sf_hot1:'全国妇联维权服务热线　12338',
+ sf_hot2:'紧急情况　110',
+ sf_po_t:'人身安全保护令',
+ sf_po:'可向居住地或家暴发生地的基层法院申请，免费，不需要先起诉离婚。法院须在 72 小时内作出裁定，情况紧急的 24 小时内。举证标准是「较大可能性」，不需要确凿证据。',
+ sf_foot:'如果有人可能查看你的手机，记得清理浏览记录。',
  cri_hd:'🔴 检测到高危信号',
  cri_body:'这不是「关系问题」，这是伤害。<br>评分系统在这里没有意义 —— 无论其他指标看起来多好。<br><br>任何把这件事解释成「他只是脾气不好」「我也有错」的说法，都不成立。',
  cri_help:'如果你需要帮助：<br><b>全国妇联维权服务热线 12338</b><br><b>紧急情况请拨 110</b><br><br>如果查看记录可能给你带来危险，记得清理浏览记录。',
@@ -104,7 +120,7 @@ I18N.zh={
  who_a:'{n} — 我对ta了解更多',who_b:'{n} — 我对ta了解更多',
  earn_hint:'每个身份在每段关系里只能领取一次硬币',earn_hint_n:'已在这段关系领取 {n} 个身份的硬币 · 每个身份仅限一次',
  pf_sub:'{n} 段关系 · {m} 段已评估 · 🪙 {c}',pf_empty_t:'持仓为空',pf_empty_s:'创建一段情感持仓开始<br>给它一个代号',
- rc_pending:'待评估',rc_closed:'已平仓',rc_open:'持仓中',rc_none:'未开仓',rc_pos:'仓位 {n}%',rc_bets:'{n} 次预测',
+ rc_pending:'待评估',rc_crisis:'高危信号',rc_closed:'已平仓',rc_open:'持仓中',rc_none:'未开仓',rc_pos:'仓位 {n}%',rc_bets:'{n} 次预测',
  dt_notassessed:'尚未评估 — 去分析师页面填写',dt_closed:'● 已平仓 · 仓位已清空',
  dt_cost:'成本价 ',dt_val:'估值 ',
  roi_settled:'已结算',roi_notopen:'未开仓',roi_waiting:'待开盘',
@@ -177,6 +193,22 @@ I18N.en={
  disclaim:'⚠ This tool offers a risk assessment, not absolute truth. All open/close actions must be executed by you in real life.',
  back_dt:'← Back to detail to open a position',
  f_hardstop:'Hard stop-loss triggered',
+ sf_noscore:'No score generated',sf_title:'This relationship cannot be opened',
+ sf_lead:'LoveTrade does not build positions in relationships involving violence. This is not something to weigh up.',
+ sf_held:'Your earlier {n}% position is kept on record, but no further actions are offered.',
+ sf_leaving_hd:'If you are thinking about leaving',
+ sf_leaving:'Leaving is often the most dangerous stage. An abuser losing control may escalate.<br>This is not telling you to stay. It is saying: having a plan matters more than leaving fast.',
+ sf_steps_hd:'Things you can do first',
+ sf_s1:'Tell one person you trust',
+ sf_s2:'Keep photos of injuries, medical records, police reports, message history',
+ sf_s3:'Pack a bag you can grab at any moment (ID, bank cards, keys, medication)',
+ sf_s4:'Decide on a place you could go to right now',
+ sf_res_hd:'Resources',
+ sf_hot1:'Find your local domestic violence hotline',
+ sf_hot2:'In an emergency, call your local emergency number',
+ sf_po_t:'Protection order',
+ sf_po:'In many places you can apply for a protection order without filing for divorce first, often free of charge. Check what is available where you live.',
+ sf_foot:'If someone might check your phone, remember to clear your history.',
  cri_hd:'🔴 HIGH-RISK SIGNAL DETECTED',
  cri_body:'This is not a "relationship problem". This is harm.<br>Scoring has no meaning here — no matter how good the other indicators look.<br><br>Any framing that turns this into "he just has a temper" or "I played a part too" does not hold.',
  cri_help:'If you need help:<br><b>Find your local domestic violence hotline</b><br><b>In an emergency, call your local emergency number</b><br><br>If being seen looking at this could put you at risk, remember to clear your history.',
@@ -217,7 +249,7 @@ I18N.en={
  who_a:'{n} — I know them better',who_b:'{n} — I know them better',
  earn_hint:'Each role can claim coins only once per relationship',earn_hint_n:'{n} role(s) claimed here · one claim per role',
  pf_sub:'{n} relationships · {m} assessed · 🪙 {c}',pf_empty_t:'No positions',pf_empty_s:'Create your first position<br>and give it a ticker',
- rc_pending:'Not assessed',rc_closed:'Closed',rc_open:'Holding',rc_none:'Not opened',rc_pos:'{n}% position',rc_bets:'{n} bets',
+ rc_pending:'Not assessed',rc_crisis:'High risk',rc_closed:'Closed',rc_open:'Holding',rc_none:'Not opened',rc_pos:'{n}% position',rc_bets:'{n} bets',
  dt_notassessed:'Not assessed — go to the Analyst tab',dt_closed:'● Closed · position cleared',
  dt_cost:'entry ',dt_val:'value ',
  roi_settled:'Settled',roi_notopen:'Not open',roi_waiting:'Pre-market',
@@ -437,7 +469,9 @@ function goSub(n,el){var s=document.querySelectorAll('.snav');for(var i=0;i<s.le
 /* ═══ PORTFOLIO ═══ */
 function relCard(r){
   var sc=r.result?(r.status==='closed'?0:r.result.score):null;
+  var crisis=!!(r.result&&r.result.hasCrisis&&!r.joined);
   var col=sc===null?'var(--t2)':sc<28?'#ff4d6d':sc<45?'#ffbe0b':'#00d68f';
+  if(crisis) col='#ff4d6d';
   var np=r.positions?r.positions.length:0;
   var tag,posTag='',vd;
   if(r.joined){
@@ -445,13 +479,13 @@ function relCard(r){
     vd=sc===null?'--':t('obs_tag');
   }else{
     tag=r.status==='open'?'<span class="rc-tag tag-open">'+t('rc_open')+'</span>':r.status==='closed'?'<span class="rc-tag tag-closed">'+t('rc_closed')+'</span>':'<span class="rc-tag tag-none">'+t('rc_none')+'</span>';
-    vd=r.status==='closed'?t('rc_closed'):r.result?r.result.verdict:t('rc_pending');
+    vd=crisis?t('rc_crisis'):r.status==='closed'?t('rc_closed'):r.result?r.result.verdict:t('rc_pending');
     posTag=r.status==='open'?'<span style="color:var(--g)">'+t('rc_pos',{n:(r.position||0)})+'</span> · ':'';
   }
   return '<div class="rel-card'+(r.id===DB.active?' active':'')+(r.joined?' obs':'')+'" onclick="pickRel(\''+r.id+'\')">'+
     '<div class="rc-del" onclick="event.stopPropagation();delRel(\''+r.id+'\')" title="删除">×</div>'+
     '<div class="rc-top"><div><div class="rc-ticker">$'+r.ticker+'</div><div class="rc-name">'+r.name+' · '+r.nameA+' & '+r.nameB+'</div></div>'+
-    '<div><div class="rc-score" style="color:'+col+'">'+(sc===null?'--':sc)+'</div><div class="rc-verdict" style="color:'+col+'">'+vd+'</div></div></div>'+
+    '<div><div class="rc-score" style="color:'+col+'">'+(crisis?'⚠':(sc===null?'--':sc))+'</div><div class="rc-verdict" style="color:'+col+'">'+vd+'</div></div></div>'+
     '<div class="rc-bot">'+tag+'<span>'+posTag+t('rc_bets',{n:np})+'</span></div></div>';
 }
 function renderPF(){
@@ -582,6 +616,7 @@ function renderDT(){
   else if(closed){ch.textContent=t('dt_closed');ch.style.cssText='font-size:12px;color:#ff4d6d;background:rgba(255,77,109,.1);padding:3px 9px;border-radius:20px;display:inline-flex;margin-top:3px'}
   else{var d=sc-50;ch.textContent=(d>=0?'▲ ':'▼ ')+Math.abs(d)+' pts · '+r.result.verdict;ch.style.cssText='font-size:12px;color:'+col+';background:'+col+'18;padding:3px 9px;border-radius:20px;display:inline-flex;margin-top:3px'}
   var st=[['dt-pe',closed?0:(r.result?r.result.peScore:null)],['dt-cf',closed?0:(r.result?r.result.cfScore:null)],['dt-vol',closed?0:(r.result?r.result.volatility:null)]];
+  if(isCrisis && !r.joined) st=[['dt-pe',null],['dt-cf',null],['dt-vol',null]];
   for(var i=0;i<st.length;i++){var e=$(st[i][0]);e.textContent=st[i][1]===null?'--':st[i][1];e.style.color=st[i][1]===null?'var(--t2)':closed?'#ff4d6d':(st[i][1]>55?'#00d68f':'#ff4d6d')}
   var roi=$('dt-roi'),ms=mktSeries(r),hasPos=ms&&ms.ev&&ms.ev.length>0;
   var ep=r.entryPrice;
@@ -629,14 +664,23 @@ function renderDT(){
   else pu.style.display='none';
   renderInsider(r,ms);
   renderActions(r);
-  var needAns = BACKEND_READY && !r.joined && r.status==='open' && !r.answersDone;
+  var isCrisis = !!(r.result && r.result.hasCrisis);
+  if(isCrisis && !r.joined){
+    $('dt-price').textContent='—';
+    $('dt-price').style.color='#ff4d6d';
+    ch.textContent=t('sf_noscore');
+    ch.style.cssText='font-size:11px;color:#ff8fa8;background:rgba(255,45,85,.1);padding:3px 9px;border-radius:20px;display:inline-flex;margin-top:3px';
+  }
+  var needAns = BACKEND_READY && !r.joined && r.status==='open' && !r.answersDone && !isCrisis;
   $('ans-card').style.display = needAns ? 'block' : 'none';
-  var canShare=!r.joined && r.status==='open' && (!BACKEND_READY || r.answersDone);
-  $('share-bar').style.display=r.joined?'none':'block';
+  var canShare=!r.joined && r.status==='open' && (!BACKEND_READY || r.answersDone) && !isCrisis;
+  $('share-bar').style.display=(r.joined||isCrisis)?'none':'block';
   $('sb-btn').style.display=canShare?'block':'none';
   $('share-lock').style.display=canShare?'none':'block';
   if(needAns) $('share-lock').innerHTML=t('lock_answers');
   updBars(r);
+  var ps0=document.querySelector('.pred-strip');
+  if(ps0) ps0.style.display = (isCrisis && !r.joined) ? 'none' : 'block';
   var hasChart=(r.result&&!closed)||closed||hasPos;
   $('dt-chartwrap').style.display=hasChart?'block':'none';
   $('dt-nochart').style.display=hasChart?'none':'block';
@@ -997,6 +1041,11 @@ function settlePositions(r){
 /* ═══ 动线 · 状态按钮 ═══ */
 function renderActions(r){
   var a=$('act-area'),h='';
+  // 危机级：不提供任何仓位操作
+  if(r.result && r.result.hasCrisis && !r.joined){
+    a.innerHTML = safetyCard(r);
+    return;
+  }
   if(r.joined){
     a.innerHTML='<button class="btn-o" style="width:100%;background:var(--go);color:#000" onclick="goTab(\'pd\')">'+t('btn_predict')+'</button>';
     return;
@@ -1013,6 +1062,34 @@ function renderActions(r){
       '<button class="btn-c" style="width:100%;border-color:rgba(255,77,109,.3);color:var(--r)" onclick="doClose()">'+t('btn_close_pos',{n:pz})+'</button>';
   }
   a.innerHTML=h;
+}
+
+/* 危机级关系的安全卡片 —— 代替所有仓位按钮 */
+function safetyCard(r){
+  var held = (r.status==='open' && (r.position||0)>0);
+  return '<div class="safety-card">'+
+    '<div class="sf-title">'+t('sf_title')+'</div>'+
+    '<div class="sf-lead">'+t('sf_lead')+'</div>'+
+    (held ? '<div class="sf-held">'+t('sf_held',{n:r.position})+'</div>' : '')+
+    '<div class="sf-div"></div>'+
+    '<div class="sf-hd">'+t('sf_leaving_hd')+'</div>'+
+    '<div class="sf-body">'+t('sf_leaving')+'</div>'+
+    '<div class="sf-hd">'+t('sf_steps_hd')+'</div>'+
+    '<ul class="sf-list">'+
+      '<li>'+t('sf_s1')+'</li>'+
+      '<li>'+t('sf_s2')+'</li>'+
+      '<li>'+t('sf_s3')+'</li>'+
+      '<li>'+t('sf_s4')+'</li>'+
+    '</ul>'+
+    '<div class="sf-div"></div>'+
+    '<div class="sf-hd">'+t('sf_res_hd')+'</div>'+
+    '<div class="sf-hot"><b>'+t('sf_hot1')+'</b></div>'+
+    '<div class="sf-hot"><b>'+t('sf_hot2')+'</b></div>'+
+    '<div class="sf-po-t">'+t('sf_po_t')+'</div>'+
+    '<div class="sf-body">'+t('sf_po')+'</div>'+
+    '<div class="sf-div"></div>'+
+    '<div class="sf-foot">'+t('sf_foot')+'</div>'+
+  '</div>';
 }
 
 /* ═══ SHARE ═══ */
