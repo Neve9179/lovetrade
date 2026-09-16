@@ -60,7 +60,7 @@ I18N.zh={
  sig:'交易信号',score_pe:'认知对等 PE',score_cf:'财务协同 CF',score_vol:'波动率 VOL',
  bd_title:'评分明细',bd_base:'基本面基础分',bd_pos:'正面事件',bd_neg:'负面事件',bd_hard:'硬性止损触发',
  bd_soft:'软性风险因子',bd_macro:'宏观环境',bd_labor:'情感劳动损耗',bd_laborpen:'情感劳动失衡',bd_gap:'情绪稳定性落差',bd_total:'综合指数',
- rpt_title:'分析师报告',kline_title:'感情 K 线图',kline_cap:'基于你填写的事件时间线生成 · 非市场价格',
+ rpt_title:'分析师报告',rpt_empty_t:'暂无报告',rpt_empty_s:'完成评估后报告将出现在这里',kline_title:'感情 K 线图',kline_cap:'基于你填写的事件时间线生成 · 非市场价格',
  disclaim:'⚠ 本工具提供情感资产风险评估，而非绝对真理。所有开仓/平仓操作均需在现实中手动执行。',
  back_dt:'← 返回详情页开仓',
  f_hardstop:'硬性止损已触发',
@@ -112,7 +112,7 @@ I18N.zh={
  pred_none:'暂无预测 — 分享代号邀请朋友',pl_empty:'暂无持仓 — 成为第一个预测者',pl_ops:'{n} 次操作 · 累计 {a}🪙',pl_ops2:'{n} 次操作 · 累计投入 {a} 🪙',
  pl_net_long:'净多',pl_net_short:'净空',pl_op:'操作 {n}',pl_rev:'⚠️ 立场反转',
  pl_right:'✓ 判断正确 +{n}',pl_wrong:'✗ 判断错误',
- mkt_people:'{p} 人 · {o} 次操作',sum_long:'{n} 人做多',sum_short:'{n} 人做空',sum_locked:'🔒 谁在做多、谁在做空、各自的了解程度 —— 解锁后可见',
+ mkt_people:'参与者 {p} 人 · {o} 次操作',sum_long:'{n} 人做多',sum_short:'{n} 人做空',sum_locked:'🔒 谁在做多、谁在做空、各自的了解程度 —— 解锁后可见',
  btn_assess:'去评估 →',btn_reassess_new:'重新评估开启新一轮 →',btn_open_at:'开仓 @{n}',btn_reassess:'重新评估',
  btn_add:'加仓',btn_add_full:'加仓（满仓）',btn_cut:'减仓',btn_close_pos:'平仓（清空 {n}% 仓位）',
  pu_text:'这段关系创建于「仓位」功能上线之前，当前的 <b id="pu-cur">{n}</b>% 是系统补的默认值，不是你的真实选择。请设置成你实际投入的程度。',
@@ -173,7 +173,7 @@ I18N.en={
  sig:'SIGNAL',score_pe:'PARITY PE',score_cf:'FIN SYNC CF',score_vol:'VOLATILITY',
  bd_title:'SCORE BREAKDOWN',bd_base:'Fundamentals',bd_pos:'Positive events',bd_neg:'Negative events',bd_hard:'Hard stop triggered',
  bd_soft:'Soft risk factors',bd_macro:'Macro environment',bd_labor:'Emotional labor drain',bd_laborpen:'Labor imbalance',bd_gap:'Stability gap',bd_total:'INDEX',
- rpt_title:'ANALYST REPORT',kline_title:'RELATIONSHIP CHART',kline_cap:'Generated from your event timeline · not market price',
+ rpt_title:'ANALYST REPORT',rpt_empty_t:'No report yet',rpt_empty_s:'Your report will appear here after assessment',kline_title:'RELATIONSHIP CHART',kline_cap:'Generated from your event timeline · not market price',
  disclaim:'⚠ This tool offers a risk assessment, not absolute truth. All open/close actions must be executed by you in real life.',
  back_dt:'← Back to detail to open a position',
  f_hardstop:'Hard stop-loss triggered',
@@ -483,6 +483,7 @@ async function delRel(id){
   }
   DB.rels = DB.rels.filter(function(x){ return x.id!==id });
   if(DB.active===id) DB.active = DB.rels.length?DB.rels[0].id:null;
+  _rptLoadedFor=null; _formLoadedFor=null;
   save(); renderPF(); tst(t('ts_deleted'));
 }
 function pickRel(id){DB.active=id;save();goTab('dt');if(typeof watchActive==='function')watchActive();}
@@ -506,7 +507,7 @@ async function createRel(){
     r={id:uid(),ticker:tk,name:nm,nameA:a,nameB:b,created:Date.now(),result:null,positions:[],lots:[],earned:{},status:'none'};
     DB.rels.push(r);
   }
-  DB.active=r.id;save();
+  DB.active=r.id;_rptLoadedFor=null;_formLoadedFor=null;save();
   $('nr-name').value='';$('nr-a').value='';$('nr-b').value='';$('nr-tk').value='';
   closeMo('newrel');tst(t('ts_created',{n:tk}));goTab('an');
 }
@@ -1283,13 +1284,17 @@ function updBet(){
   $('bi-r').textContent='+'+Math.round(a*1.8).toLocaleString()+' 🪙';
   $('bt-ok').style.opacity=a>0?'1':'.4';
 }
+var _betting=false;
 async function confirmBet(){
+  if(_betting) return;
   var r=cur(),a=SESS.amt;
   if(a<=0){tst(t('ts_needamt'));return}
   if(a>DB.coins)return;
+  _betting=true;
+  var btn=$('bt-ok'); if(btn){btn.disabled=true;btn.style.opacity='.5'}
   if(BACKEND_READY){
     try{ await apiBet(r.id, SESS.rel.role, SESS.betType, a); await syncOne(r.id); }
-    catch(e){ tst('下注失败：'+((e&&e.message)||'')); return }
+    catch(e){ _betting=false; if(btn){btn.disabled=false;btn.style.opacity='1'} tst('下注失败：'+((e&&e.message)||'')); return }
   }else{
     DB.coins-=a;
     var nm={parent:t('anon_parent'),sibling:t('anon_sibling'),bestfriend:t('anon_bestfriend'),friend:t('anon_friend'),acquaintance:t('anon_acquaintance'),third:t('anon_third')};
@@ -1298,6 +1303,8 @@ async function confirmBet(){
       role:SESS.rel.role,type:SESS.betType,amount:a,ts:Date.now()});
     save();
   }
+  _betting=false;
+  if(btn){btn.disabled=false;btn.style.opacity='1'}
   closeMo('bet');renderPD();
   tst(t(SESS.betType==='long'?'ts_bet_long':'ts_bet_short',{n:a.toLocaleString()}));
   setTimeout(function(){goTab('dt')},700);
@@ -1519,14 +1526,24 @@ function labCard(R){
 }
 /* ═══ ENGINE ═══ */
 var _formLoadedFor = null;
+var _rptLoadedFor  = null;
 function renderAN(){
   var r=cur();
   $('an-ctx').textContent = r ? '$'+r.ticker : '--';
-  if(!r) return;
+  if(!r){ clearReport(); _rptLoadedFor=null; _formLoadedFor=null; return }
+
+  // 表单：切换关系时回填或清空
   if(_formLoadedFor !== r.id){
     _formLoadedFor = r.id;
     if(r.form) restoreForm(r.form); else clearForm();
   }
+
+  // 报告：从存储里读，切换关系时跟着换
+  if(_rptLoadedFor !== r.id){
+    _rptLoadedFor = r.id;
+    if(r.result) showResult(r.result, true); else clearReport();
+  }
+
   var b=$('reassess-hint');
   if(b){
     if(r.result && r.form){
@@ -1534,6 +1551,13 @@ function renderAN(){
       b.innerHTML=t('reassess_hint',{d:fmtDate(r.result.ts||r.created)});
     }else b.style.display='none';
   }
+}
+function clearReport(){
+  window._lastResult=null;
+  $('rpt').innerHTML='<div style="text-align:center;padding:40px 0;color:var(--t2)">'+
+    '<div style="font-size:28px;margin-bottom:10px">📊</div>'+
+    '<div style="font-size:14px;font-weight:700;font-family:Syne,sans-serif;margin-bottom:5px">'+t('rpt_empty_t')+'</div>'+
+    '<div style="font-size:11px">'+t('rpt_empty_s')+'</div></div>';
 }
 function fmtDate(ts){var d=new Date(ts);return (d.getMonth()+1)+'月'+d.getDate()+'日'}
 function isObs(){var r=cur();return !!(r&&r.joined)}
@@ -1717,10 +1741,11 @@ function startAn(){
       r.history.push({score:R.score,verdict:R.verdict,ts:Date.now()});
       save();
     }
+    _rptLoadedFor = r.id;
     renderPD(); showResult(R);
   },4000);
 }
-function showResult(R){
+function showResult(R, silent){
   window._lastResult=R;
   $('a-an').style.display='none';$('a-form').style.display='block';
   var c=R.color;
@@ -1732,9 +1757,11 @@ function showResult(R){
     $('rpt').innerHTML = crisisCard(R) +
       '<div class="dis">'+t('cri_note')+'</div>'+
       '<button class="rst" onclick="goTab(\'dt\')">'+t('back_dt')+'</button><div style="height:6px"></div>';
-    var sn0=document.querySelectorAll('.snav');for(var k0=0;k0<sn0.length;k0++)sn0[k0].classList.remove('on');
-    var sb0=document.querySelectorAll('.sub');for(var m0=0;m0<sb0.length;m0++)sb0[m0].classList.remove('on');
-    sn0[1].classList.add('on');$('sub-rp').classList.add('on');$('scroll').scrollTop=0;
+    if(!silent){
+      var sn0=document.querySelectorAll('.snav');for(var k0=0;k0<sn0.length;k0++)sn0[k0].classList.remove('on');
+      var sb0=document.querySelectorAll('.sub');for(var m0=0;m0<sb0.length;m0++)sb0[m0].classList.remove('on');
+      sn0[1].classList.add('on');$('sub-rp').classList.add('on');$('scroll').scrollTop=0;
+    }
     return;
   }
   $('rpt').innerHTML=
@@ -1748,13 +1775,20 @@ function showResult(R){
    '<div class="dis">'+t('disclaim')+'</div>'+
    '<button class="rst" onclick="goTab(\'dt\')">'+t('back_dt')+'</button><div style="height:6px"></div>';
   setTimeout(function(){var cv=$('rk');if(cv&&cv.offsetWidth){var dpr=window.devicePixelRatio||1,W=cv.offsetWidth,H=140;cv.width=W*dpr;cv.height=H*dpr;var ctx=cv.getContext('2d');ctx.scale(dpr,dpr);ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=1;var gl=[.25,.5,.75];for(var g=0;g<gl.length;g++){var y=6+(H-12)*gl[g];ctx.beginPath();ctx.moveTo(6,y);ctx.lineTo(W-6,y);ctx.stroke()}drawK(ctx,W,H,R.klinePts,c)}},120);
-  var b=$('stx');b.innerHTML='';var cu=document.createElement('span');cu.className='cur';b.appendChild(cu);
-  var ix=0,tx=R.analysis;
-  var ti=setInterval(function(){if(ix<tx.length){cu.parentNode.insertBefore(document.createTextNode(tx[ix]),cu);ix++}else{clearInterval(ti);cu.remove()}},12);
-  var sn=document.querySelectorAll('.snav');for(var k=0;k<sn.length;k++)sn[k].classList.remove('on');
-  var _sb=document.querySelectorAll('.sub');for(var m=0;m<_sb.length;m++)_sb[m].classList.remove('on');
-  sn[1].classList.add('on');$('sub-rp').classList.add('on');$('scroll').scrollTop=0;
-  tst(t('ts_assessdone'));
+  var b=$('stx');b.innerHTML='';
+  if(silent){
+    b.textContent=R.analysis;
+  }else{
+    var cu=document.createElement('span');cu.className='cur';b.appendChild(cu);
+    var ix=0,tx=R.analysis;
+    var ti=setInterval(function(){if(ix<tx.length){cu.parentNode.insertBefore(document.createTextNode(tx[ix]),cu);ix++}else{clearInterval(ti);cu.remove()}},12);
+  }
+  if(!silent){
+    var sn=document.querySelectorAll('.snav');for(var k=0;k<sn.length;k++)sn[k].classList.remove('on');
+    var _sb=document.querySelectorAll('.sub');for(var m=0;m<_sb.length;m++)_sb[m].classList.remove('on');
+    sn[1].classList.add('on');$('sub-rp').classList.add('on');$('scroll').scrollTop=0;
+    tst(t('ts_assessdone'));
+  }
 }
 
 /* ═══ INIT ═══ */
