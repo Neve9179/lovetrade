@@ -681,9 +681,9 @@ function renderDT(){
   updBars(r);
   var ps0=document.querySelector('.pred-strip');
   if(ps0) ps0.style.display = (isCrisis && !r.joined) ? 'none' : 'block';
-  var hasChart=(r.result&&!closed)||closed||hasPos;
+  var hasChart=((r.result&&!closed)||closed||hasPos) && !(isCrisis && !r.joined);
   $('dt-chartwrap').style.display=hasChart?'block':'none';
-  $('dt-nochart').style.display=hasChart?'none':'block';
+  $('dt-nochart').style.display=(hasChart||(isCrisis&&!r.joined))?'none':'block';
   var cap=closed?t('cap_closed'):(hasPos?t('cap_market'):t('cap_val'));
   $('dt-chart-cap').textContent=hasChart?cap:'';
 }
