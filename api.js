@@ -94,9 +94,10 @@ async function apiCreateRel(o){
   return rowToRel(r.data, [], []);
 }
 async function apiGetByTicker(tk){
-  var r = await sb.from('relationships').select('*').eq('ticker', tk.toUpperCase()).maybeSingle();
+  // 权限收紧后不能直接查表，走服务端函数（代号 = 钥匙）
+  var r = await sb.rpc('get_rel_by_ticker', { p_ticker: tk.toUpperCase() });
   if(r.error) throw r.error;
-  return r.data;
+  return (r.data && r.data[0]) || null;
 }
 async function apiMyRels(){
   var out = {};
@@ -127,6 +128,14 @@ async function apiMyRels(){
 
   return rows.map(function(row){ return rowToRel(row, bp[row.id], bl[row.id]) })
              .sort(function(a,b){ return a.created-b.created });
+}
+/* 加入一段关系：先登记一条 viewer 记录建立关联，否则收紧后读不到 */
+async function apiClaimAccess(relId){
+  try{
+    await sb.from('participants').insert({
+      rel_id: relId, actor_id: ME, role: 'viewer', coins: 0
+    });
+  }catch(e){ /* 已存在则忽略 */ }
 }
 async function apiRefreshRel(relId){
   var r = await sb.from('relationships').select('*').eq('id', relId).maybeSingle();
@@ -230,11 +239,11 @@ async function apiSpendCoins(amount){
 }
 async function apiEarnedRoles(relId){
   var r = await sb.from('participants').select('role').eq('rel_id', relId).eq('actor_id', ME);
-  var o={}; (r.data||[]).forEach(function(p){ o[p.role]=1 });
-  return o;
+  var o={}; (r.data||[]).forEach(function(p){ if(p.role!=='viewer') o[p.role]=1 });
+  return o;   // viewer 只是访问凭证，不算领过币的身份
 }
 async function apiMyRoleIn(relId){
-  var r = await sb.from('participants').select('*').eq('rel_id', relId).eq('actor_id', ME);
+  var r = await sb.from('participants').select('*').eq('rel_id', relId).eq('actor_id', ME).neq('role','viewer');
   return (r.data && r.data[0]) || null;
 }
 

@@ -520,7 +520,9 @@ async function joinByCode(){
     var row=null;
     try{ row = await apiGetByTicker(c); }catch(e){}
     if(!row){ tst(t('ts_nosuch')); return }
+    await apiClaimAccess(row.id);                 // 先建立关联，否则读不到
     var fresh = await apiRefreshRel(row.id);
+    if(!fresh){ tst(t('ts_nosuch')); return }
     fresh.earned = await apiEarnedRoles(row.id);
     DB.rels.push(fresh); DB.active=fresh.id;
   }else{
@@ -549,9 +551,12 @@ async function handlePendingJoin(){
     var row=null;
     try{ row = await apiGetByTicker(d.t) }catch(e){}
     if(row){
+      await apiClaimAccess(row.id);
       var fresh = await apiRefreshRel(row.id);
-      fresh.earned = await apiEarnedRoles(row.id);
-      DB.rels.push(fresh); DB.active=fresh.id; save(); return;
+      if(fresh){
+        fresh.earned = await apiEarnedRoles(row.id);
+        DB.rels.push(fresh); DB.active=fresh.id; save(); return;
+      }
     }
   }
   var r={id:uid(),ticker:d.t,name:d.n||('$'+d.t),nameA:d.a||t('side_a'),nameB:d.b||t('side_b'),
