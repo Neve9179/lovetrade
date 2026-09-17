@@ -712,11 +712,20 @@ function fmtTime(ts){var d=new Date(ts);return (d.getMonth()+1)+'/'+d.getDate()+
 function updBars(r){
   var lT=0,sT=0,rL=0,rS=0,ps=r.positions||[];
   for(var i=0;i<ps.length;i++){var p=ps[i],w=p.weight||1;if(p.type==='long'){lT+=p.amount*w;rL+=p.amount}else{sT+=p.amount*w;rS+=p.amount}}
-  var tot=lT+sT||1,lp=Math.round(lT/tot*100);
+  var noBets = ps.length===0;
+  var tot=lT+sT||1,lp=noBets?50:Math.round(lT/tot*100);
+  if(noBets){
+    $('dt-bl').style.width='50%'; $('dt-bl').textContent='';
+    $('dt-bs').style.width='50%'; $('dt-bs').textContent='';
+    $('dt-bl').style.opacity='.22'; $('dt-bs').style.opacity='.22';
+  }else{
+    $('dt-bl').style.opacity='1'; $('dt-bs').style.opacity='1';
+  }
   $('dt-bl').style.width=lp+'%';
   $('dt-bl').textContent = lp>=18 ? t('bar_long',{n:lp}) : (lp>=8 ? lp+'%' : '');
   $('dt-bs').style.width=(100-lp)+'%';
   $('dt-bs').textContent = (100-lp)>=18 ? t('bar_short',{n:(100-lp)}) : ((100-lp)>=8 ? (100-lp)+'%' : '');
+  if(noBets){ $('dt-bl').textContent=''; $('dt-bs').textContent=''; }
   var people=countPeople(ps);
   $('dt-tc').textContent=(rL+rS).toLocaleString();
   $('dt-pc').textContent=t('mkt_people',{p:people,o:ps.length});
@@ -881,7 +890,7 @@ function updCalib(){
 async function confirmCalib(){
   var r=cur(),v=+$('cb-sl').value;
   if(BACKEND_READY){
-    try{ await apiCalib(r.id, v); await syncOne(r.id); }catch(e){ tst('保存失败'); return }
+    try{ await apiCalib(r.id, v); await syncOne(r.id); }catch(e){ tst((e&&e.message)||'保存失败'); return }
   }else{
     r.position=v; r.posUnset=false;
     if(r.lots&&r.lots.length)r.lots[0].size=v;
@@ -906,8 +915,10 @@ function updOpenPos(){
 async function confirmOpen(){
   var r=cur(),pz=+$('op-sl').value;
   if(BACKEND_READY){
+    busy(true, t('busy_open'));
     try{ await apiOpen(r.id, r.result.score, pz); await syncOne(r.id); r=cur(); }
-    catch(e){ tst('保存失败'); return }
+    catch(e){ busy(false); tst((e&&e.message)||'保存失败'); return }
+    busy(false);
   }else{
     r.status='open'; r.entryPrice=r.result.score; r.entryTime=Date.now();
     r.position=pz; r.realized=0;
@@ -942,8 +953,10 @@ async function confirmAdd(){
   var newEntry=+((r.entryPrice*cp+r.result.score*add)/(cp+add)).toFixed(1);
   var newPos=cp+add, ol=OUTLOOK.ap;
   if(BACKEND_READY){
+    busy(true, t('busy_save'));
     try{ await apiAdd(r.id, r.result.score, add, newEntry, newPos, ol); await syncOne(r.id); r=cur(); }
-    catch(e){ tst('保存失败'); return }
+    catch(e){ busy(false); tst((e&&e.message)||'保存失败'); return }
+    busy(false);
   }else{
     r.entryPrice=newEntry; r.position=newPos;
     if(!r.lots)r.lots=[];
@@ -988,8 +1001,10 @@ async function confirmCut(){
   if(!isFinite(pnl))pnl=0;
   var newRealized=+((r.realized||0)+pnl).toFixed(1), newPos=cp-cut, ol=OUTLOOK.cp;
   if(BACKEND_READY){
+    busy(true, t('busy_save'));
     try{ await apiCut(r.id, now, cut, newPos, +pnl.toFixed(1), newRealized, ol); await syncOne(r.id); r=cur(); }
-    catch(e){ tst('保存失败'); return }
+    catch(e){ busy(false); tst((e&&e.message)||'保存失败'); return }
+    busy(false);
   }else{
     r.realized=newRealized; r.position=newPos;
     if(!r.lots)r.lots=[];
@@ -1014,8 +1029,10 @@ function doClose(){
 async function confirmClose(){
   var r=cur();
   if(BACKEND_READY){
+    busy(true, t('busy_save'));
     try{ await apiClose(r.id); await syncOne(r.id); }
-    catch(e){ tst('保存失败'); return }
+    catch(e){ busy(false); tst((e&&e.message)||'保存失败'); return }
+    busy(false);
   }else{
     r.status='closed'; r.closeTime=Date.now(); settlePositions(r); save();
   }
@@ -1039,6 +1056,19 @@ function settlePositions(r){
   }
 }
 /* ═══ 动线 · 状态按钮 ═══ */
+function busy(on, label){
+  var el=document.getElementById('busy-veil');
+  if(on){
+    if(!el){
+      el=document.createElement('div');
+      el.id='busy-veil';
+      el.innerHTML='<div class="bv-box"><div class="bv-spin"></div><div class="bv-txt"></div></div>';
+      document.body.appendChild(el);
+    }
+    el.querySelector('.bv-txt').textContent=label||t('busy_wait');
+    el.classList.add('show');
+  }else if(el){ el.classList.remove('show') }
+}
 function renderActions(r){
   var a=$('act-area'),h='';
   // 危机级：不提供任何仓位操作
@@ -1267,8 +1297,9 @@ async function ownerAnswersDone(){
   closeMo('quiz');
   var r=cur();
   if(BACKEND_READY){
-    try{ await apiSaveAnswers(r.id, SESS.who, SESS.ans); await syncOne(r.id); }
-    catch(e){ tst('保存失败：'+((e&&e.message)||'')); SESS.mode=null; return }
+    busy(true, t('busy_save'));
+    try{ await apiSaveAnswers(r.id, SESS.who, SESS.ans); await syncOne(r.id); busy(false); }
+    catch(e){ busy(false); tst((e&&e.message)||'保存失败'); SESS.mode=null; return }
   }else{
     r.answersDone=true; save();
   }
@@ -1306,8 +1337,10 @@ function renderPD(){
   $('earn-hint').textContent=earnedRoles?t('earn_hint_n',{n:earnedRoles}):t('earn_hint');
   var ps=r.positions||[],lT=0,sT=0,rL=0,rS=0;
   for(var i=0;i<ps.length;i++){var p=ps[i],w=p.weight||1;if(p.type==='long'){lT+=p.amount*w;rL+=p.amount}else{sT+=p.amount*w;rS+=p.amount}}
-  var tot=lT+sT||1,lp=Math.round(lT/tot*100);
-  $('lp').textContent=lp;$('sp').textContent=100-lp;$('msf').style.width=lp+'%';
+  var noB = ps.length===0;
+  var tot=lT+sT||1,lp=noB?50:Math.round(lT/tot*100);
+  $('lp').textContent=noB?'—':lp;$('sp').textContent=noB?'—':(100-lp);
+  $('msf').style.width=lp+'%';$('msf').style.opacity=noB?'.22':'1';
   var gs=groupPos(ps);
   $('tc2').textContent=(rL+rS).toLocaleString();
   $('tp2').textContent=t('mkt_people',{p:gs.length,o:ps.length});
@@ -1817,7 +1850,7 @@ function startAn(){
         await apiSaveResult(r.id, R, snap);
         await apiAddAssessment(r.id, R, snap);
         await syncOne(r.id);
-      }catch(e){ console.warn('保存评估失败',e); tst('评估保存失败，请重试'); }
+      }catch(e){ console.warn('保存评估失败',e); tst((e&&e.message)||'评估保存失败'); }
     }else{
       if(!r.history)r.history=[];
       r.history.push({score:R.score,verdict:R.verdict,ts:Date.now()});

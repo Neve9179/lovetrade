@@ -147,7 +147,7 @@ async function apiRefreshRel(relId){
 async function apiSaveResult(relId, result, form){
   var patch = { result:result, updated_at:new Date().toISOString() };
   if(form) patch.form = form;
-  await sb.from('relationships').update(patch).eq('id', relId);
+  await mustUpdate('relationships', patch, relId, '保存评估');
 }
 /* 每次评估存一条历史，不覆盖 */
 async function apiAddAssessment(relId, result, form){
@@ -172,18 +172,30 @@ async function apiDeleteRel(relId){
 }
 
 /* ─── 仓位操作 ───────────────────────────────────────────── */
+/* 统一的写入校验：Supabase 在 RLS 挡住时不报错，只返回 0 行 */
+async function mustUpdate(table, patch, relId, what){
+  var r = await sb.from(table).update(patch).eq('id', relId).select();
+  if(r.error) throw new Error(what+' 失败：'+r.error.message);
+  if(!r.data || !r.data.length) throw new Error(what+' 失败：没有写入权限（RLS 拦截）');
+  return r.data[0];
+}
+async function mustInsert(table, row, what){
+  var r = await sb.from(table).insert(row).select();
+  if(r.error) throw new Error(what+' 失败：'+r.error.message);
+  return r.data && r.data[0];
+}
 async function apiOpen(relId, price, size){
-  await sb.from('relationships').update({
+  await mustUpdate('relationships', {
     status:'open', entry_price:price, position:size,
     entry_time:new Date().toISOString(), realized:0
-  }).eq('id', relId);
-  await sb.from('lots').insert({ rel_id:relId, type:'open', size:size, price:price });
+  }, relId, '开仓');
+  await mustInsert('lots', { rel_id:relId, type:'open', size:size, price:price }, '开仓记录');
 }
 async function apiAdd(relId, price, size, newEntry, newPos, outlook){
   var patch = { entry_price:newEntry, position:newPos };
   if(outlook) patch.outlook = outlook;
-  await sb.from('relationships').update(patch).eq('id', relId);
-  await sb.from('lots').insert({ rel_id:relId, type:'add', size:size, price:price });
+  await mustUpdate('relationships', patch, relId, '加仓');
+  await mustInsert('lots', { rel_id:relId, type:'add', size:size, price:price }, '加仓记录');
 }
 async function apiCut(relId, price, size, newPos, pnl, newRealized, outlook){
   var patch = { position:newPos, realized:newRealized };
@@ -194,15 +206,15 @@ async function apiCut(relId, price, size, newPos, pnl, newRealized, outlook){
     var d=new Date(); d.setMonth(d.getMonth()+3);
     patch.followup_at=d.toISOString();
   }
-  await sb.from('relationships').update(patch).eq('id', relId);
-  await sb.from('lots').insert({ rel_id:relId, type:'cut', size:size, price:price, pnl:pnl });
+  await mustUpdate('relationships', patch, relId, '减仓');
+  await mustInsert('lots', { rel_id:relId, type:'cut', size:size, price:price, pnl:pnl }, '减仓记录');
   if(newPos<=0) await apiSettle(relId);
 }
 async function apiClose(relId){
   var d=new Date(); d.setMonth(d.getMonth()+3);
-  await sb.from('relationships').update({
+  await mustUpdate('relationships', {
     status:'closed', close_time:new Date().toISOString(), followup_at:d.toISOString()
-  }).eq('id', relId);
+  }, relId, '平仓');
   await apiSettle(relId);
 }
 async function apiCalib(relId, size){
@@ -250,9 +262,9 @@ async function apiMyRoleIn(relId){
 /* ─── 标准答案 ───────────────────────────────────────────── */
 async function apiSaveAnswers(relId, side, answers){
   var r = await sb.from('standard_answers')
-    .upsert({ rel_id:relId, side:side, answers:answers }, { onConflict:'rel_id,side' });
-  if(r.error) throw r.error;
-  await sb.from('relationships').update({ answers_done:true }).eq('id', relId);
+    .upsert({ rel_id:relId, side:side, answers:answers }, { onConflict:'rel_id,side' }).select();
+  if(r.error) throw new Error('保存标准答案失败：'+r.error.message);
+  await mustUpdate('relationships', { answers_done:true }, relId, '标记答案已填');
 }
 async function apiHasAnswers(relId){
   var r = await sb.from('standard_answers').select('side').eq('rel_id', relId);
