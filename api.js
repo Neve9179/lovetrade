@@ -23,10 +23,8 @@ async function initBackend(){
     sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth:{ persistSession:true, autoRefreshToken:true, storageKey:'lt_auth' }
     });
-    var s = await sb.auth.getSession();
-    if(s.data && s.data.session){
-      ME = s.data.session.user.id;
-    }else{
+    var ok = await ensureSession();
+    if(!ok || !ME){
       var r = await sb.auth.signInAnonymously();
       if(r.error) throw r.error;
       ME = r.data.user.id;
@@ -36,6 +34,33 @@ async function initBackend(){
   }catch(e){
     BACKEND_ERR = (e && e.message) || '连接失败';
     console.warn('[LoveTrade] 后端不可用：', BACKEND_ERR);
+    return false;
+  }
+}
+
+/* 每次写入前确认登录还有效，过期就重新登录 */
+async function ensureSession(){
+  if(!sb) return false;
+  try{
+    var s = await sb.auth.getSession();
+    var sess = s.data && s.data.session;
+    // 没有会话，或者 60 秒内就要过期，重新拿一个
+    var soon = sess && sess.expires_at && (sess.expires_at*1000 - Date.now() < 60000);
+    if(!sess || soon){
+      var rf = await sb.auth.refreshSession();
+      if(rf.error || !rf.data.session){
+        var ni = await sb.auth.signInAnonymously();
+        if(ni.error) throw ni.error;
+        ME = ni.data.user.id;
+        return true;
+      }
+      ME = rf.data.session.user.id;
+      return true;
+    }
+    ME = sess.user.id;
+    return true;
+  }catch(e){
+    console.warn('会话刷新失败', e);
     return false;
   }
 }
@@ -87,9 +112,10 @@ function rowToRel(row, positions, lots){
 
 /* ─── 关系 ───────────────────────────────────────────────── */
 async function apiCreateRel(o){
+  await ensureSession();
   var r = await sb.from('relationships').insert({
-    ticker:o.ticker, name:o.name, name_a:o.nameA, name_b:o.nameB, owner_id:ME
-  }).select().single();
+    ticker:o.ticker, name:o.name, name_a:o.nameA, name_b:o.nameB
+  }).select().single();          // owner_id 由数据库用 auth.uid() 填
   if(r.error) throw r.error;
   return rowToRel(r.data, [], []);
 }
@@ -131,9 +157,10 @@ async function apiMyRels(){
 }
 /* 加入一段关系：先登记一条 viewer 记录建立关联，否则收紧后读不到 */
 async function apiClaimAccess(relId){
+  await ensureSession();
   try{
     await sb.from('participants').insert({
-      rel_id: relId, actor_id: ME, role: 'viewer', coins: 0
+      rel_id: relId, role: 'viewer', coins: 0
     });
   }catch(e){ /* 已存在则忽略 */ }
 }
@@ -174,12 +201,14 @@ async function apiDeleteRel(relId){
 /* ─── 仓位操作 ───────────────────────────────────────────── */
 /* 统一的写入校验：Supabase 在 RLS 挡住时不报错，只返回 0 行 */
 async function mustUpdate(table, patch, relId, what){
+  await ensureSession();
   var r = await sb.from(table).update(patch).eq('id', relId).select();
   if(r.error) throw new Error(what+' 失败：'+r.error.message);
   if(!r.data || !r.data.length) throw new Error(what+' 失败：没有写入权限（RLS 拦截）');
   return r.data[0];
 }
 async function mustInsert(table, row, what){
+  await ensureSession();
   var r = await sb.from(table).insert(row).select();
   if(r.error) throw new Error(what+' 失败：'+r.error.message);
   return r.data && r.data[0];
@@ -223,8 +252,9 @@ async function apiCalib(relId, size){
 
 /* ─── 参与者与硬币 ───────────────────────────────────────── */
 async function apiJoinRole(relId, role, side, coins, accuracy){
+  await ensureSession();
   var r = await sb.from('participants').insert({
-    rel_id:relId, actor_id:ME, role:role, knows_side:side,
+    rel_id:relId, role:role, knows_side:side,
     coins:coins, accuracy:accuracy
   }).select().single();
   if(r.error){
@@ -261,6 +291,7 @@ async function apiMyRoleIn(relId){
 
 /* ─── 标准答案 ───────────────────────────────────────────── */
 async function apiSaveAnswers(relId, side, answers){
+  await ensureSession();
   var r = await sb.from('standard_answers')
     .upsert({ rel_id:relId, side:side, answers:answers }, { onConflict:'rel_id,side' }).select();
   if(r.error) throw new Error('保存标准答案失败：'+r.error.message);
@@ -278,10 +309,11 @@ async function apiGradeQuiz(relId, side, answers){
 
 /* ─── 下注 ───────────────────────────────────────────────── */
 async function apiBet(relId, role, type, amount){
+  await ensureSession();
   var r = await sb.from('positions').insert({
-    rel_id:relId, actor_id:ME, role:role, type:type, amount:amount
-  });
-  if(r.error) throw r.error;
+    rel_id:relId, role:role, type:type, amount:amount
+  }).select();
+  if(r.error) throw new Error('下注失败：'+r.error.message);
   await apiSpendCoins(amount);
 }
 
@@ -311,8 +343,9 @@ async function apiMyProfile(){
 
 /* ─── 付费订单 ───────────────────────────────────────────── */
 async function apiCreateOrder(relId, orderNo, note){
+  await ensureSession();
   var r = await sb.from('orders').insert({
-    rel_id:relId, actor_id:ME, order_no:orderNo, note:note||null
+    rel_id:relId, order_no:orderNo, note:note||null
   }).select().single();
   if(r.error) throw r.error;
   return r.data;
